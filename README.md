@@ -76,6 +76,22 @@ Requires: **Python 3.10+**, `numpy`, `matplotlib`.
 
 ---
 
+## Experiments — storm shell (R&D)
+
+Prototype **storm surge shell** + beacons + toughen ramps under extreme interference (I up to 6.4+).  
+Not promoted Soft Pack DNA. Optional future actuate skin.
+
+```bat
+cd experiments\storm_shell
+python hell_beacons_surge_demo.py
+python storm_surge_learn_cycles.py
+python toughen_then_hell_eval.py
+```
+
+See `experiments/storm_shell/README.md` and last-run plots under `experiments/storm_shell/out/`.
+
+---
+
 ## Wire-in (nodes)
 
 ```python

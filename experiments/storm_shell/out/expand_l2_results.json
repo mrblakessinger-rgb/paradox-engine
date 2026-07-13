@@ -1,0 +1,51 @@
+{
+  "proto": "expand_l2_v1",
+  "dna": "PROMOTED_FROZEN",
+  "mode": "cruel",
+  "target": 0.92,
+  "seeds": [
+    7,
+    11,
+    21,
+    42,
+    99
+  ],
+  "steps": 100,
+  "baseline": {
+    "n": 5,
+    "late_mean": 0.9424966851163574,
+    "late_std": 0.001178660459564551,
+    "min_mean": 0.5510920828846289,
+    "hell_mean": 0.9440753841985314,
+    "hell_min_mean": 0.9401760486880579,
+    "edge_coh_mean": 0.9643344180545835,
+    "l2_frac_mean": 0.6,
+    "locked_mean": 0.0,
+    "absorb_mean": 0.0
+  },
+  "expand_l2": {
+    "n": 5,
+    "late_mean": 0.9434394065414097,
+    "late_std": 0.0012434944800658022,
+    "min_mean": 0.5510920828846289,
+    "hell_mean": 0.9449773336747052,
+    "hell_min_mean": 0.941138387551099,
+    "edge_coh_mean": 0.9659380355332529,
+    "l2_frac_mean": 0.72424,
+    "locked_mean": 0.0,
+    "absorb_mean": 239.2
+  },
+  "delta": {
+    "late_stab": 0.0009427214250522509,
+    "edge_coh": 0.001603617478669328,
+    "min_stab": 0.0,
+    "hell_min": 0.0009623388630410901
+  },
+  "mechanics": [
+    "adaptive L2 band width under high I",
+    "L2-only damper/repair/explore flex",
+    "soft absorb: strong L2 lifts weak L3 (capped, anti-lock)",
+    "cruel schedule: long high-I plateau so edge can fray"
+  ],
+  "note": "Prototype only \u2014 not promoted into Soft Pack DNA"
+}

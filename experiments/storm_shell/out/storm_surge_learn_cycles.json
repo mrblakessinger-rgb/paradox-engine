@@ -1,0 +1,394 @@
+{
+  "proto": "storm_surge_shell_v2_learn_3cycle",
+  "cycle_steps": 120,
+  "phases": [
+    [
+      "warm",
+      12
+    ],
+    [
+      "cruel",
+      18
+    ],
+    [
+      "hell",
+      22
+    ],
+    [
+      "flicker",
+      16
+    ],
+    [
+      "beyond",
+      18
+    ],
+    [
+      "annihilate",
+      14
+    ],
+    [
+      "recover",
+      20
+    ]
+  ],
+  "seeds": [
+    7,
+    21,
+    42,
+    99
+  ],
+  "n_cycles": 3,
+  "shell_v2_params": {
+    "I_arm": 1.55,
+    "I_full": 3.4,
+    "max_cut": 0.48,
+    "flux_clip": 0.5,
+    "beacon_pull": 0.16
+  },
+  "arms": [
+    {
+      "name": "baseline_no_shell_frozen",
+      "learn": false,
+      "shell": false,
+      "by_cycle": {
+        "1": {
+          "late_mean": 0.8955748707105576,
+          "late_std": 0.006260535111830452,
+          "min_mean": 0.5558390519108616,
+          "edge_mean": 0.9294782459867086,
+          "hard_rate": 0.0,
+          "soft_rate": 0.0,
+          "hold_rate": 1.0,
+          "mean_shield": 1.0,
+          "phase_late": {
+            "warm": 0.9500166367109742,
+            "cruel": 0.9412700839657911,
+            "hell": 0.7525737078026542,
+            "flicker": 0.8438880035278215,
+            "beyond": 0.7304471586253438,
+            "annihilate": 0.6597903137334227,
+            "recover": 0.9505120916114836
+          }
+        },
+        "2": {
+          "late_mean": 0.8953536280641067,
+          "late_std": 0.002519967244631665,
+          "min_mean": 0.5275232429088765,
+          "edge_mean": 0.9251964361767118,
+          "hard_rate": 0.0,
+          "soft_rate": 0.0,
+          "hold_rate": 1.0,
+          "mean_shield": 1.0,
+          "phase_late": {
+            "warm": 0.9493097118586876,
+            "cruel": 0.9418872010545476,
+            "hell": 0.7530568052902777,
+            "flicker": 0.8130219190669202,
+            "beyond": 0.7315073696496422,
+            "annihilate": 0.658660494717247,
+            "recover": 0.9495740698034494
+          }
+        },
+        "3": {
+          "late_mean": 0.8960068936088517,
+          "late_std": 0.004201668425457964,
+          "min_mean": 0.48185325910099164,
+          "edge_mean": 0.9229987549683516,
+          "hard_rate": 0.0,
+          "soft_rate": 0.0,
+          "hold_rate": 1.0,
+          "mean_shield": 1.0,
+          "phase_late": {
+            "warm": 0.9472076601341353,
+            "cruel": 0.9392505421568972,
+            "hell": 0.7536552768843882,
+            "flicker": 0.8432604860579118,
+            "beyond": 0.7311030716854965,
+            "annihilate": 0.6572223292220377,
+            "recover": 0.9482608917695692
+          }
+        }
+      },
+      "delta_c3_c1": 0.0004320228982940266,
+      "intuition_trace_last": []
+    },
+    {
+      "name": "shell_v2_frozen",
+      "learn": false,
+      "shell": true,
+      "by_cycle": {
+        "1": {
+          "late_mean": 0.927969332581358,
+          "late_std": 0.003322983483688837,
+          "min_mean": 0.5558390519108616,
+          "edge_mean": 0.9303809327775633,
+          "hard_rate": 0.0,
+          "soft_rate": 0.0,
+          "hold_rate": 1.0,
+          "mean_shield": 0.699421494698513,
+          "phase_late": {
+            "warm": 0.9500166367109742,
+            "cruel": 0.9594819167181318,
+            "hell": 0.9491289273003679,
+            "flicker": 0.9514118853931175,
+            "beyond": 0.9418200122517858,
+            "annihilate": 0.727581293113202,
+            "recover": 0.9516535983169438
+          }
+        },
+        "2": {
+          "late_mean": 0.927553472793057,
+          "late_std": 0.0008502918361328239,
+          "min_mean": 0.5275232429088765,
+          "edge_mean": 0.9261820755408129,
+          "hard_rate": 0.0,
+          "soft_rate": 0.0,
+          "hold_rate": 1.0,
+          "mean_shield": 0.6940251370947913,
+          "phase_late": {
+            "warm": 0.9493097118586876,
+            "cruel": 0.9597943754311147,
+            "hell": 0.9487980038419405,
+            "flicker": 0.9519823459029809,
+            "beyond": 0.9416974209316685,
+            "annihilate": 0.7274636368602725,
+            "recover": 0.950860230227766
+          }
+        },
+        "3": {
+          "late_mean": 0.9275426383486253,
+          "late_std": 0.001454169814322509,
+          "min_mean": 0.48185325910099164,
+          "edge_mean": 0.9239575115033903,
+          "hard_rate": 0.0,
+          "soft_rate": 0.0,
+          "hold_rate": 1.0,
+          "mean_shield": 0.696608422354245,
+          "phase_late": {
+            "warm": 0.9472076601341353,
+            "cruel": 0.9582163586406668,
+            "hell": 0.9493879828123282,
+            "flicker": 0.9513211541606108,
+            "beyond": 0.9413513666924418,
+            "annihilate": 0.726476100242744,
+            "recover": 0.949468956650381
+          }
+        }
+      },
+      "delta_c3_c1": -0.00042669423273278273,
+      "intuition_trace_last": []
+    },
+    {
+      "name": "shell_v2_LEARN",
+      "learn": true,
+      "shell": true,
+      "by_cycle": {
+        "1": {
+          "late_mean": 0.927969332581358,
+          "late_std": 0.003322983483688837,
+          "min_mean": 0.5558390519108616,
+          "edge_mean": 0.9303809327775633,
+          "hard_rate": 0.0,
+          "soft_rate": 0.0,
+          "hold_rate": 1.0,
+          "mean_shield": 0.699421494698513,
+          "phase_late": {
+            "warm": 0.9500166367109742,
+            "cruel": 0.9594819167181318,
+            "hell": 0.9491289273003679,
+            "flicker": 0.9514118853931175,
+            "beyond": 0.9418200122517858,
+            "annihilate": 0.727581293113202,
+            "recover": 0.9516535983169438
+          }
+        },
+        "2": {
+          "late_mean": 0.9281866073204315,
+          "late_std": 0.0008533427831294066,
+          "min_mean": 0.5289774973393786,
+          "edge_mean": 0.9266703909661629,
+          "hard_rate": 0.0,
+          "soft_rate": 0.0,
+          "hold_rate": 1.0,
+          "mean_shield": 0.6909129486962767,
+          "phase_late": {
+            "warm": 0.9493845960080203,
+            "cruel": 0.9598003483439594,
+            "hell": 0.9488562831749545,
+            "flicker": 0.9517807615471379,
+            "beyond": 0.9414782899931368,
+            "annihilate": 0.7321758357383077,
+            "recover": 0.9508895616447978
+          }
+        },
+        "3": {
+          "late_mean": 0.9289986507761868,
+          "late_std": 0.0013013854554351505,
+          "min_mean": 0.48495785430373,
+          "edge_mean": 0.924061974564107,
+          "hard_rate": 0.0,
+          "soft_rate": 0.0,
+          "hold_rate": 1.0,
+          "mean_shield": 0.6904841617864645,
+          "phase_late": {
+            "warm": 0.9475936630260435,
+            "cruel": 0.9582951623718424,
+            "hell": 0.949605391558765,
+            "flicker": 0.9506633599300586,
+            "beyond": 0.9413915631206491,
+            "annihilate": 0.7358736381930008,
+            "recover": 0.9494089559039163
+          }
+        }
+      },
+      "delta_c3_c1": 0.0010293181948287655,
+      "intuition_trace_last": [
+        {
+          "damper_bias": 2.16,
+          "repair_bias": 2.119999999999999,
+          "viscosity_bias": 2.0,
+          "explore_bias": 0.1,
+          "countermeasure_invest": 1.1749999999999998,
+          "failure_respect": 1.01,
+          "pairing_strength": 1.0
+        },
+        {
+          "damper_bias": 2.16,
+          "repair_bias": 2.119999999999999,
+          "viscosity_bias": 2.0,
+          "explore_bias": 0.1,
+          "countermeasure_invest": 1.1749999999999998,
+          "failure_respect": 1.01,
+          "pairing_strength": 1.0
+        },
+        {
+          "damper_bias": 2.16,
+          "repair_bias": 2.119999999999999,
+          "viscosity_bias": 2.0,
+          "explore_bias": 0.1,
+          "countermeasure_invest": 1.1749999999999998,
+          "failure_respect": 1.01,
+          "pairing_strength": 1.0
+        },
+        {
+          "damper_bias": 2.16,
+          "repair_bias": 2.119999999999999,
+          "viscosity_bias": 2.0,
+          "explore_bias": 0.1,
+          "countermeasure_invest": 1.1749999999999998,
+          "failure_respect": 1.01,
+          "pairing_strength": 1.0
+        }
+      ]
+    },
+    {
+      "name": "surge_only_LEARN",
+      "learn": true,
+      "shell": true,
+      "by_cycle": {
+        "1": {
+          "late_mean": 0.9261601958287294,
+          "late_std": 0.0037471871858869867,
+          "min_mean": 0.5558390519108616,
+          "edge_mean": 0.9303726006979365,
+          "hard_rate": 0.0,
+          "soft_rate": 0.0,
+          "hold_rate": 1.0,
+          "mean_shield": 0.7000850980984936,
+          "phase_late": {
+            "warm": 0.9500166367109742,
+            "cruel": 0.9573884519359633,
+            "hell": 0.9458954060513642,
+            "flicker": 0.9490565389108143,
+            "beyond": 0.9394366488490724,
+            "annihilate": 0.7173892725217227,
+            "recover": 0.9515582735884426
+          }
+        },
+        "2": {
+          "late_mean": 0.9268067533463349,
+          "late_std": 0.0009171849051242988,
+          "min_mean": 0.5289774973393786,
+          "edge_mean": 0.9262728288799118,
+          "hard_rate": 0.0,
+          "soft_rate": 0.0,
+          "hold_rate": 1.0,
+          "mean_shield": 0.691626151319717,
+          "phase_late": {
+            "warm": 0.9493845960080203,
+            "cruel": 0.9577913900806803,
+            "hell": 0.9457708742481005,
+            "flicker": 0.9492354949242662,
+            "beyond": 0.9390609828321235,
+            "annihilate": 0.7222979856655563,
+            "recover": 0.9507901809651015
+          }
+        },
+        "3": {
+          "late_mean": 0.9274821977701073,
+          "late_std": 0.0015232491398942637,
+          "min_mean": 0.48495785430373,
+          "edge_mean": 0.9240582856414381,
+          "hard_rate": 0.0,
+          "soft_rate": 0.0,
+          "hold_rate": 1.0,
+          "mean_shield": 0.6911794409740761,
+          "phase_late": {
+            "warm": 0.9475936630260435,
+            "cruel": 0.9560630467200057,
+            "hell": 0.9465796626021452,
+            "flicker": 0.948290272658358,
+            "beyond": 0.9391878021279146,
+            "annihilate": 0.7262409753002842,
+            "recover": 0.949351739423659
+          }
+        }
+      },
+      "delta_c3_c1": 0.0013220019413778816,
+      "intuition_trace_last": [
+        {
+          "damper_bias": 2.16,
+          "repair_bias": 2.119999999999999,
+          "viscosity_bias": 2.0,
+          "explore_bias": 0.1,
+          "countermeasure_invest": 1.1749999999999998,
+          "failure_respect": 1.01,
+          "pairing_strength": 1.0
+        },
+        {
+          "damper_bias": 2.16,
+          "repair_bias": 2.119999999999999,
+          "viscosity_bias": 2.0,
+          "explore_bias": 0.1,
+          "countermeasure_invest": 1.1749999999999998,
+          "failure_respect": 1.01,
+          "pairing_strength": 1.0
+        },
+        {
+          "damper_bias": 2.16,
+          "repair_bias": 2.119999999999999,
+          "viscosity_bias": 2.0,
+          "explore_bias": 0.1,
+          "countermeasure_invest": 1.1749999999999998,
+          "failure_respect": 1.01,
+          "pairing_strength": 1.0
+        },
+        {
+          "damper_bias": 2.16,
+          "repair_bias": 2.119999999999999,
+          "viscosity_bias": 2.0,
+          "explore_bias": 0.1,
+          "countermeasure_invest": 1.1749999999999998,
+          "failure_respect": 1.01,
+          "pairing_strength": 1.0
+        }
+      ]
+    }
+  ],
+  "verdict": "SHELL_WINS_LEARN_FLAT: tightened shell carries the load; learning deltas small. Ship shell as actuate/storm skin; keep learn experimental.",
+  "notes": {
+    "shell": "tightened engage/release/limp/predictive",
+    "learn": "Paradox absorb scars \u2192 compress wisdom + countermeasure/damper nudges",
+    "promote": "NO \u2014 Soft Pack DNA frozen"
+  }
+}
