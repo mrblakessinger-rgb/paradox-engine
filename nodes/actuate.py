@@ -1,37 +1,156 @@
 """
 Actuate node — map kernel stability → actions you apply outside the kernel.
 
-Buyer surface: "shield / quarantine / revive / open traffic / storm_mode."
-Recovery-aware (v1.1): re-open concurrency when calm returns so success
-can climb after hell — without abandoning cool-under-thrash.
+Buyer surface: "shield / quarantine / revive / open traffic / storm pack."
 
-Storm shell (v1.2): optional storm_mode deepens felt-load cut under extreme
-env_load / thrash (R&D from experiments/storm_shell). DNA stays frozen.
+Recovery-aware (v1.1): re-open concurrency when calm returns.
+Storm pack (v1.3): **auto-armed by default** — Paradox-side arsenal for extreme
+load. Operators do not flip a switch; trigger points engage/release the shell
+with hysteresis. DNA stays frozen; wisdom names the arsenal.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal
 
 StormMode = Literal["off", "auto", "on"]
+
+# =============================================================================
+# Storm pack — trigger points (auto arsenal)
+# Engage when extreme; release when calm. Tuned from tough-week + near-blackout.
+# =============================================================================
+# ENTER storm (any one true while mode=auto):
+STORM_ENV_ENTER = 1.75          # env load (429 / deploy thrash band)
+STORM_THRASH_ENTER = 0.75       # retry stampede
+STORM_BUDGET_ENTER = 0.50       # shared quota below half + stress
+STORM_GOODPUT_ENTER = 0.20      # fleet goodput floor under load
+STORM_SPIKE_DENV = 0.20         # sudden env jump
+STORM_SPIKE_ENV_MIN = 1.30
+STORM_I_ENTER = 2.15            # kernel interference if env not wired
+STORM_EMPTY_ENTER = 0.18        # empty/error tool rate under stress
+
+# EXIT storm (all true for STORM_RELEASE_HOLD steps):
+STORM_ENV_EXIT = 1.45
+STORM_THRASH_EXIT = 0.40
+STORM_BUDGET_EXIT = 0.65
+STORM_GOODPUT_EXIT = 0.28
+STORM_I_EXIT = 1.85
+STORM_RELEASE_HOLD = 3          # consecutive calm steps before drop shell
+
+# Shell physics
+STORM_I_ARM = 1.55
+STORM_I_FULL = 3.4
+STORM_MAX_CUT = 0.48
+
+
+@dataclass
+class StormLatch:
+    """
+    Hysteresis so shell doesn't chatter on/off every step.
+    HealthEngine / caller keeps one instance across steps.
+    """
+
+    active: bool = False
+    calm_streak: int = 0
+    last_reason: str = ""
+
+    def update(
+        self,
+        *,
+        want_enter: bool,
+        want_exit: bool,
+        reason_enter: str = "",
+    ) -> bool:
+        if self.active:
+            if want_exit:
+                self.calm_streak += 1
+                if self.calm_streak >= STORM_RELEASE_HOLD:
+                    self.active = False
+                    self.calm_streak = 0
+                    self.last_reason = "release_calm"
+            else:
+                self.calm_streak = 0
+        else:
+            if want_enter:
+                self.active = True
+                self.calm_streak = 0
+                self.last_reason = reason_enter or "enter"
+        return self.active
+
+
+def evaluate_storm_triggers(
+    *,
+    env_load: float | None = None,
+    thrash: float | None = None,
+    stability: float = 0.9,
+    target: float = 0.92,
+    goodput: float | None = None,
+    budget_remaining: float | None = None,
+    empty_tool_rate: float | None = None,
+    d_env: float | None = None,
+    kernel_I: float | None = None,
+) -> tuple[bool, bool, str]:
+    """
+    Returns (want_enter, want_exit, reason).
+
+    want_enter: conditions for extreme arsenal
+    want_exit: conditions safe enough to drop shell (hysteresis applied by latch)
+    """
+    env = 0.0 if env_load is None else float(env_load)
+    thr = 0.0 if thrash is None else float(max(0.0, thrash))
+    d_env = 0.0 if d_env is None else float(d_env)
+    ki = None if kernel_I is None else float(kernel_I)
+    gp = None if goodput is None else float(goodput)
+    br = None if budget_remaining is None else float(budget_remaining)
+    empty = 0.0 if empty_tool_rate is None else float(max(0.0, empty_tool_rate))
+
+    reasons: list[str] = []
+    if env >= STORM_ENV_ENTER:
+        reasons.append(f"env>={STORM_ENV_ENTER}")
+    if thr >= STORM_THRASH_ENTER:
+        reasons.append(f"thrash>={STORM_THRASH_ENTER}")
+    if br is not None and br < STORM_BUDGET_ENTER and env >= 1.35:
+        reasons.append(f"budget<{STORM_BUDGET_ENTER}")
+    if gp is not None and gp < STORM_GOODPUT_ENTER and env >= 1.25:
+        reasons.append(f"goodput<{STORM_GOODPUT_ENTER}")
+    if d_env >= STORM_SPIKE_DENV and env >= STORM_SPIKE_ENV_MIN:
+        reasons.append("env_spike")
+    if ki is not None and ki >= STORM_I_ENTER:
+        reasons.append(f"I>={STORM_I_ENTER}")
+    if empty >= STORM_EMPTY_ENTER and (env >= 1.3 or thr >= 0.5):
+        reasons.append("empty_tools")
+    if stability < target - 0.10 and env >= 1.4:
+        reasons.append("stab_gap")
+
+    want_enter = len(reasons) > 0
+
+    exit_ok = (
+        env < STORM_ENV_EXIT
+        and thr < STORM_THRASH_EXIT
+        and (br is None or br >= STORM_BUDGET_EXIT)
+        and (gp is None or gp >= STORM_GOODPUT_EXIT)
+        and (ki is None or ki < STORM_I_EXIT)
+        and empty < STORM_EMPTY_ENTER * 0.7
+        and stability >= target - 0.06
+    )
+    return want_enter, exit_ok, "+".join(reasons) if reasons else "none"
 
 
 @dataclass
 class ActionPlan:
     """What your outer system should do this step."""
 
-    shield_scale: float  # multiply felt env load (1.0 = no shield, 0.5 = strong)
-    quarantine_k: int  # drop worst K workers/agents/clients
-    revive_k: int  # bring back K previously dropped
-    cool_retries: bool  # if True, damp retry/stampede multiplier
-    open_traffic: bool = False  # recovery: raise concurrency / mild thrash reopen
-    concurrency_delta: int = 0  # hint: +N or -N workers this step
+    shield_scale: float
+    quarantine_k: int
+    revive_k: int
+    cool_retries: bool
+    open_traffic: bool = False
+    concurrency_delta: int = 0
     note: str = ""
-    # --- storm shell (optional) ---
-    storm_active: bool = False  # True when storm shell engaged this step
-    storm_scale: float = 1.0  # extra multiplier applied on top of base shield (≤1)
-    # effective felt multiplier = shield_scale * storm_scale
+    storm_active: bool = False
+    storm_scale: float = 1.0
+    storm_reason: str = ""  # why shell engaged / held / released
 
     def as_dict(self) -> dict:
         return {
@@ -44,84 +163,52 @@ class ActionPlan:
             "note": self.note,
             "storm_active": self.storm_active,
             "storm_scale": self.storm_scale,
+            "storm_reason": self.storm_reason,
             "felt_scale": self.felt_scale(),
         }
 
     def felt_scale(self) -> float:
-        """Combined multiplier for env load (base shield × storm shell)."""
         return float(max(0.05, min(1.0, self.shield_scale * self.storm_scale)))
 
 
-def _storm_shell_scale(
+def _storm_shell_physics(
     *,
-    env_load: float | None,
-    thrash: float | None,
+    env_load: float,
+    thrash: float,
     stability: float,
     target: float,
-    storm_mode: StormMode,
-    d_env: float | None = None,
-) -> tuple[bool, float]:
+    d_env: float,
+    countermeasure: float = 0.98,
+) -> float:
     """
-    Storm surge shell (tightened, buyer-safe).
-    Returns (active, storm_scale) where felt *= storm_scale (≤1).
-
-    - off: never
-    - on: always compute shell from env (still limp if dead)
-    - auto: engage when env/thrash high or rising hard
+    Depth of shell cut once arsenal is active.
+    countermeasure_invest (Paradox intuition) slightly deepens max cut.
     """
-    if storm_mode == "off":
-        return False, 1.0
+    env = float(env_load)
+    thr = float(max(0.0, thrash))
+    cm = float(max(0.3, min(2.0, countermeasure)))
+    max_cut = STORM_MAX_CUT * (0.88 + 0.14 * min(cm, 1.5))
 
-    env = 0.0 if env_load is None else float(env_load)
-    thr = 0.0 if thrash is None else float(max(0.0, thrash))
-    stab = float(stability)
-    d_env = 0.0 if d_env is None else float(d_env)
-
-    # arm thresholds (env units ~ same as proof env I, often 0.5..3+, storm demos higher)
-    I_arm = 1.55
-    I_full = 3.4
-    max_cut = 0.48
-
-    want = storm_mode == "on"
-    if storm_mode == "auto":
-        want = (
-            env >= I_arm
-            or thr >= 0.85
-            or (d_env >= 0.12 and env >= 1.2)
-            or (env >= 1.35 and thr >= 0.45)
-        )
-    if not want and env < I_arm and thr < 0.85:
-        return False, 1.0
-
-    # depth along env
-    depth = float(max(0.0, min(1.0, (env - I_arm) / max(I_full - I_arm, 1e-6))))
+    depth = float(max(0.0, min(1.0, (env - STORM_I_ARM) / max(STORM_I_FULL - STORM_I_ARM, 1e-6))))
     depth = depth * depth * (3.0 - 2.0 * depth)
-    # thrash adds depth even if env mid
     depth = min(1.0, depth + 0.25 * min(1.0, thr / 1.5))
 
-    hold = float(max(0.0, min(1.0, (stab - 0.35) / 0.55)))
+    hold = float(max(0.0, min(1.0, (stability - 0.35) / 0.55)))
     pred = 0.0
     if d_env >= 0.12:
         pred += 0.12 * min(1.0, d_env / 0.4)
-    if stab < target - 0.06:
+    if stability < target - 0.06:
         pred += 0.08
 
     cut = max_cut * depth * (0.30 + 0.70 * hold) * (1.0 + pred)
     cut = float(max(0.0, min(max_cut, cut)))
-
-    # limp: don't fake immortality if fleet already smashed
-    if stab < 0.42:
+    if stability < 0.42:
         cut *= 0.45
 
     scale = 1.0 - cut
-
-    # recovery handoff: calm env + healthy → open shell
-    if env < 1.85 and thr < 0.35 and stab >= target - 0.06:
+    if env < 1.85 and thr < 0.35 and stability >= target - 0.06:
         scale = min(1.0, scale + 0.12)
-
-    scale = float(max(1.0 - max_cut, min(1.0, scale)))
-    active = scale < 0.985
-    return active, scale
+    return float(max(1.0 - max_cut, min(1.0, scale)))
 
 
 def plan_actions(
@@ -132,18 +219,20 @@ def plan_actions(
     goodput: float | None = None,
     env_load: float | None = None,
     thrash: float | None = None,
-    storm_mode: StormMode = "off",
+    storm_mode: StormMode = "auto",
     d_env: float | None = None,
     budget_remaining: float | None = None,
+    empty_tool_rate: float | None = None,
+    kernel_I: float | None = None,
+    countermeasure_invest: float | None = None,
+    storm_latch: StormLatch | None = None,
 ) -> ActionPlan:
     """
     Policy used by portfolio + real-world demos.
 
-    - Thrash / low success → cool + optional quarantine
-    - Near target + calm env → restore + open_traffic (recovery aggressiveness)
-    - Mid success with healthy kernel → nudge open, don't keep choking
-    - storm_mode auto/on → deepen felt-load cut under extreme env/thrash
-    - budget_remaining 0..1 → refuse open_traffic when empty (budget gate)
+    storm_mode default **auto**: storm pack is in Paradox's arsenal and
+    engages on trigger points without operator intervention.
+    Pass storm_latch= to keep hysteresis across steps (HealthEngine does this).
     """
     stab = float(stability)
     sr = float(success_rate) if success_rate is not None else None
@@ -151,6 +240,11 @@ def plan_actions(
     env = float(env_load) if env_load is not None else None
     thr = float(thrash) if thrash is not None else None
     gap = target - stab
+    cm = 0.98 if countermeasure_invest is None else float(countermeasure_invest)
+
+    # If caller only has kernel I, treat as env proxy for triggers
+    if env is None and kernel_I is not None:
+        env = float(kernel_I)
 
     # Shield: healthier kernel → more load dampening
     if stab >= target - 0.01:
@@ -169,7 +263,6 @@ def plan_actions(
     conc_delta = 0
     note = "hold"
 
-    # --- protect (stricter than before: only true thrash, not mild dips) ---
     deep_hurt = (sr is not None and sr < 0.42) or (gp is not None and gp < 0.16)
     soft_hurt = gap > 0.10 or (sr is not None and sr < 0.48)
     if thr is not None and thr >= 1.2:
@@ -188,7 +281,6 @@ def plan_actions(
         if sr is not None and sr < 0.45:
             quarantine_k = 1
 
-    # --- recovery / restore ---
     calm_env = env is None or env < 1.55
     very_calm = env is not None and env < 1.25
     if thr is not None and thr >= 0.6:
@@ -224,7 +316,6 @@ def plan_actions(
         if note in ("hold", "nudge", "cool"):
             note = "climb"
 
-    # --- budget gate (wisdom: reopen only when budget funds attempts) ---
     if budget_remaining is not None:
         br = float(max(0.0, min(1.0, budget_remaining)))
         if br < 0.08:
@@ -236,29 +327,68 @@ def plan_actions(
         elif br < 0.20 and open_traffic:
             conc_delta = min(conc_delta, 0)
 
-    # --- storm shell ---
-    storm_active, storm_scale = _storm_shell_scale(
-        env_load=env,
-        thrash=thr,
-        stability=stab,
-        target=target,
-        storm_mode=storm_mode,
-        d_env=d_env,
-    )
-    if storm_active:
-        # Shell is primarily a felt-load cut (apply_shield). Side effects stay light:
-        # cool thrash, don't stampede open — but still allow revive so fleets recover.
-        cool = True
-        if open_traffic and (env is not None and env >= 2.2):
-            open_traffic = False
-            if conc_delta > 0:
-                conc_delta = 0
-        if conc_delta > 1:
-            conc_delta = 1
-        if note in ("hold", "nudge", "restore", "climb", "nudge_open", "restore_open"):
-            note = "storm_shell"
-        elif "+storm" not in note:
-            note = f"{note}+storm"
+    # --- Storm pack (arsenal) ---
+    storm_active = False
+    storm_scale = 1.0
+    storm_reason = ""
+    env_f = 0.0 if env is None else env
+    thr_f = 0.0 if thr is None else thr
+    d_env_f = 0.0 if d_env is None else float(d_env)
+
+    if storm_mode == "off":
+        storm_reason = "mode_off"
+    else:
+        want_enter, want_exit, reason = evaluate_storm_triggers(
+            env_load=env,
+            thrash=thr,
+            stability=stab,
+            target=target,
+            goodput=gp,
+            budget_remaining=budget_remaining,
+            empty_tool_rate=empty_tool_rate,
+            d_env=d_env,
+            kernel_I=kernel_I,
+        )
+        if storm_mode == "on":
+            storm_active = True
+            storm_reason = "mode_on_force"
+        elif storm_latch is not None:
+            storm_active = storm_latch.update(
+                want_enter=want_enter,
+                want_exit=want_exit,
+                reason_enter=reason,
+            )
+            storm_reason = storm_latch.last_reason
+        else:
+            # stateless auto (no latch): enter only; exit when want_exit
+            storm_active = want_enter or (not want_exit and want_enter)
+            if want_enter:
+                storm_active = True
+                storm_reason = reason
+            else:
+                storm_active = False
+                storm_reason = "auto_clear" if want_exit else "auto_idle"
+
+        if storm_active:
+            storm_scale = _storm_shell_physics(
+                env_load=max(env_f, thr_f * 0.5 + 1.0),
+                thrash=thr_f,
+                stability=stab,
+                target=target,
+                d_env=d_env_f,
+                countermeasure=cm,
+            )
+            cool = True
+            if open_traffic and env_f >= 2.0:
+                open_traffic = False
+                if conc_delta > 0:
+                    conc_delta = 0
+            if conc_delta > 1:
+                conc_delta = 1
+            if note in ("hold", "nudge", "restore", "climb", "nudge_open", "restore_open"):
+                note = "storm_auto"
+            elif "+storm" not in note:
+                note = f"{note}+storm"
 
     return ActionPlan(
         shield_scale=float(shield),
@@ -270,9 +400,10 @@ def plan_actions(
         note=note,
         storm_active=bool(storm_active),
         storm_scale=float(storm_scale),
+        storm_reason=storm_reason,
     )
 
 
 def apply_shield(env_load: float, plan: ActionPlan) -> float:
-    """Felt load after base shield × storm shell (naive world sim)."""
+    """Felt load after base shield × storm shell."""
     return float(max(0.0, env_load * plan.felt_scale()))

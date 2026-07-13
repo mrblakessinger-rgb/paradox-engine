@@ -85,6 +85,10 @@ PROMOTED_DNA: dict[str, Any] = {
         "recovery_climb": "when env softens, reopen traffic and climb; recovery peaks real if cool held in hell",
         "soft_vs_hard_break": "soft break = utility floor under thrash; hard break = fleet death — do not confuse them",
         "paradox_scar_path": "raw episode scars absorbed by Paradox only; swarm receives instincts, not terror",
+        "storm_arsenal": (
+            "auto storm pack is in the arsenal for extreme env/thrash/budget/goodput spikes; "
+            "engages without operator switch; releases after calm holds"
+        ),
     },
 }
 

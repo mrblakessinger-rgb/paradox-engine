@@ -1,7 +1,9 @@
 """
 HealthEngine — thin public loop around KERNEL_v1.
 
-Ingest → step → (caller uses actuate). Kernel DNA stays inside KERNEL_v1.
+Ingest → step → actuate (storm pack auto-armed).
+Paradox knows the storm arsenal via countermeasure_invest + wisdom;
+operators do not flip switches — trigger points engage the shell.
 """
 
 from __future__ import annotations
@@ -12,37 +14,44 @@ from typing import Any
 
 import numpy as np
 
-# Engine root = parent of nodes/
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import KERNEL_v1 as K  # noqa: E402
 
-from .actuate import ActionPlan, StormMode, plan_actions  # noqa: E402
+from .actuate import ActionPlan, StormLatch, StormMode, plan_actions  # noqa: E402
 from .ingest import to_interference  # noqa: E402
 
 
 class HealthEngine:
     """
-    Frozen-DNA health controller.
+    Frozen-DNA health controller with **automatic storm pack**.
 
-    Typical use:
-        eng = HealthEngine(seed=42, storm_mode="auto")
-        I = to_interference(success_rate=0.6, env_load=1.5)
-        out = eng.step(I, env_load=1.5)
-        # out["stability"], out["plan"]  (plan.storm_active when shell on)
+    Typical use (no storm_mode needed):
+        eng = HealthEngine(seed=42)
+        out = eng.step_from_metrics(success_rate=0.5, env_load=2.2, thrash=0.9)
+        # out["plan"].storm_active True when triggers fire
     """
 
-    def __init__(self, seed: int = 42, storm_mode: StormMode = "off"):
+    def __init__(self, seed: int = 42, storm_mode: StormMode = "auto"):
         self.rng = np.random.default_rng(seed)
         self.agents = K.make_swarm(self.rng)
         self.paradox = K.Paradox(K.PROMOTED_DNA)
+        # Arsenal awareness (wisdom only — not a numeric DNA rewrite)
+        if not isinstance(self.paradox.wisdom, dict):
+            self.paradox.wisdom = {}
+        self.paradox.wisdom.setdefault(
+            "storm_arsenal",
+            "auto storm pack engages on env/thrash/budget/goodput/I spikes; "
+            "no operator switch — release when calm holds",
+        )
         self.paradox.install_drivers(self.agents)
         self.ambient = 0.0
         self.last_stability = 0.88
         self.steps = 0
         self.storm_mode: StormMode = storm_mode
+        self.storm_latch = StormLatch()
         self._prev_env: float | None = None
 
     def step(
@@ -55,8 +64,9 @@ class HealthEngine:
         thrash: float | None = None,
         storm_mode: StormMode | None = None,
         budget_remaining: float | None = None,
+        empty_tool_rate: float | None = None,
     ) -> dict[str, Any]:
-        """One kernel cycle at interference I. Returns stability + action plan."""
+        """One kernel cycle. Storm pack auto-triggers unless mode=off."""
         I = float(np.clip(I, 0.4, 3.0))
         for a in self.agents:
             a.step(I, self.ambient, self.rng)
@@ -67,24 +77,28 @@ class HealthEngine:
         self.last_stability = stab
         self.steps += 1
 
-        env = env_load
+        env = env_load if env_load is not None else I
         d_env = None
-        if env is not None:
-            if self._prev_env is not None:
-                d_env = float(env) - float(self._prev_env)
-            self._prev_env = float(env)
+        if self._prev_env is not None:
+            d_env = float(env) - float(self._prev_env)
+        self._prev_env = float(env)
 
         mode: StormMode = storm_mode if storm_mode is not None else self.storm_mode
+        cm = float(self.paradox.intuition.get("countermeasure_invest", 0.98))
+
         plan = plan_actions(
             stab,
             success_rate=success_rate,
             goodput=goodput,
-            env_load=env,
+            env_load=float(env),
             thrash=thrash,
             storm_mode=mode,
             d_env=d_env,
             budget_remaining=budget_remaining,
-            target=K.TARGET_STABILITY,
+            empty_tool_rate=empty_tool_rate,
+            kernel_I=I,
+            countermeasure_invest=cm,
+            storm_latch=self.storm_latch if mode == "auto" else None,
         )
         return {
             "t": self.steps,
@@ -93,6 +107,9 @@ class HealthEngine:
             "plan": plan,
             "target": K.TARGET_STABILITY,
             "storm_mode": mode,
+            "storm_active": plan.storm_active,
+            "storm_reason": plan.storm_reason,
+            "countermeasure_invest": cm,
         }
 
     def step_from_metrics(
@@ -104,14 +121,16 @@ class HealthEngine:
         goodput: float | None = None,
         storm_mode: StormMode | None = None,
         budget_remaining: float | None = None,
+        empty_tool_rate: float = 0.0,
         **ingest_kw: Any,
     ) -> dict[str, Any]:
-        """Ingest metrics then step (one call)."""
+        """Ingest metrics then step (one call). Storm pack auto by default."""
         I = to_interference(
             success_rate=success_rate,
             env_load=env_load,
             thrash=thrash,
             budget_remaining=budget_remaining,
+            empty_tool_rate=empty_tool_rate,
             **ingest_kw,
         )
         return self.step(
@@ -122,33 +141,54 @@ class HealthEngine:
             thrash=thrash,
             storm_mode=storm_mode,
             budget_remaining=budget_remaining,
+            empty_tool_rate=empty_tool_rate,
         )
 
 
-def smoke_demo(steps: int = 40, seed: int = 42) -> dict:
-    """Quick sanity: variable I, report late stability."""
+def smoke_demo(steps: int = 50, seed: int = 42) -> dict:
+    """Sanity: mild → spike → calm; expect storm auto on then off."""
     rng = np.random.default_rng(seed)
-    eng = HealthEngine(seed=seed)
+    eng = HealthEngine(seed=seed, storm_mode="auto")
     series = []
-    I = 1.5
-    for _ in range(steps):
-        I = float(np.clip(I + rng.normal(0, 0.08), 0.7, 2.9))
-        if rng.random() < 0.1:
-            I = float(rng.choice([1.0, 1.8, 2.5, 2.9]))
-        out = eng.step(I, success_rate=0.55 + 0.1 * rng.normal())
+    storm_flags = []
+    reasons = []
+    I = 1.2
+    for t in range(steps):
+        if t < 10:
+            env, thr, gp = 1.1, 0.2, 0.55
+        elif t < 28:
+            env, thr, gp = 2.3, 1.1, 0.15  # extreme — should arm
+        else:
+            env, thr, gp = 1.2, 0.25, 0.45  # calm — should release after hold
+        out = eng.step_from_metrics(
+            success_rate=gp,
+            env_load=env,
+            thrash=thr,
+            goodput=gp,
+            budget_remaining=0.4 if t < 28 else 0.85,
+        )
         series.append(out["stability"])
+        storm_flags.append(bool(out["storm_active"]))
+        reasons.append(out["storm_reason"])
+        I = out["I"]
     arr = np.array(series, float)
+    armed = any(storm_flags[10:28])
+    released = storm_flags[-1] is False and armed
     return {
         "steps": steps,
         "mean_stability": float(np.mean(arr)),
         "late_stability": float(np.mean(arr[-max(1, steps // 5) :])),
-        "min_stability": float(np.min(arr)),
+        "storm_armed_in_spike": armed,
+        "storm_released_after_calm": released,
+        "storm_frac": float(np.mean(storm_flags)),
+        "sample_reasons": reasons[12:16],
         "target": K.TARGET_STABILITY,
+        "wisdom_storm": eng.paradox.wisdom.get("storm_arsenal", "")[:60],
     }
 
 
 if __name__ == "__main__":
-    print("HealthEngine smoke demo…")
+    print("HealthEngine smoke (storm auto arsenal)…")
     r = smoke_demo()
     for k, v in r.items():
         print(f"  {k}: {v}")

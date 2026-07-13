@@ -35,38 +35,44 @@ eng = HealthEngine(seed=42)
 out = eng.step(I=1.6)   # -> stability, actions hint
 ```
 
-## 3. Actuate
+## 3. Actuate (+ automatic storm pack)
 
-**Input:** kernel `stability` (and optional your rolling success / env load)  
-**Output:** shield load, quarantine N, revive N, cool retries, optional **storm shell**
+**Input:** kernel `stability` + optional success / env load / thrash / budget  
+**Output:** shield, quarantine, revive, cool retries, **storm pack when extreme**
 
-```python
-from nodes.actuate import plan_actions, apply_shield
+**You do not flip a storm switch in production.**  
+`HealthEngine` defaults to `storm_mode="auto"`. Paradox treats the storm shell as
+an **arsenal** for extreme circumstances (wisdom: `storm_arsenal`).
 
-plan = plan_actions(
-    stability=0.91,
-    success_rate=0.55,
-    env_load=2.4,
-    thrash=0.9,
-    storm_mode="auto",   # off | auto | on
-    budget_remaining=0.3,
-)
-# plan.shield_scale, plan.storm_active, plan.storm_scale, plan.felt_scale()
-felt = apply_shield(env_load=2.4, plan=plan)
-```
+### Auto trigger points (any → arm shell)
 
-`storm_mode="auto"` deepens felt-load cut under high env/thrash (429 hell).  
-DNA stays frozen — this is an actuate skin, not a second kernel.
+| Signal | Enter | Exit (all + 3 calm steps) |
+|--------|-------|---------------------------|
+| env_load | ≥ 1.75 | < 1.45 |
+| thrash / retries | ≥ 0.75 | < 0.40 |
+| budget_remaining | < 0.50 (+ stress) | ≥ 0.65 |
+| goodput | < 0.20 (+ stress) | ≥ 0.28 |
+| env spike | Δenv ≥ 0.20 | — |
+| kernel I | ≥ 2.15 | < 1.85 |
+| empty_tool_rate | ≥ 0.18 (+ stress) | low |
 
 ```python
 from nodes.engine_loop import HealthEngine
-eng = HealthEngine(seed=42, storm_mode="auto")
-out = eng.step_from_metrics(success_rate=0.5, env_load=2.6, thrash=1.0, goodput=0.2)
+from nodes.actuate import apply_shield
+
+eng = HealthEngine(seed=42)  # storm auto by default
+out = eng.step_from_metrics(
+    success_rate=0.5, env_load=2.2, thrash=0.9, goodput=0.18, budget_remaining=0.4
+)
+plan = out["plan"]
+# plan.storm_active, plan.storm_reason, plan.felt_scale()
+felt = apply_shield(2.2, plan)
 ```
 
-Apply `plan` in *your* code (kill worst workers, lower concurrency, etc.).
+Override only if needed: `storm_mode="off"` or `"on"`.  
+DNA stays frozen — actuate skin, not a second kernel.
 
-**429 hell demo:** `python real_world/storm_mode_429_demo.py`
+**Demos:** `python real_world/storm_mode_429_demo.py` · `python real_world/tough_week_sim.py`
 
 ## Performance claim (how to verify)
 
