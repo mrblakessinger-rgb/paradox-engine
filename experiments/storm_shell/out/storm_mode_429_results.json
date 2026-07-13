@@ -1,0 +1,47 @@
+{
+  "proto": "storm_mode_429_v1",
+  "dna": "PROMOTED_FROZEN",
+  "seeds": [
+    7,
+    13,
+    21,
+    42
+  ],
+  "steps": 120,
+  "summary": {
+    "baseline": {
+      "gp_mean": 0.023218181428579898,
+      "gp_late": 0.0,
+      "alive_late": 0.0,
+      "storm_frac": 0.0
+    },
+    "engine_off": {
+      "gp_mean": 0.17873191202989444,
+      "gp_late": 0.16032366071428572,
+      "alive_late": 8.03125,
+      "storm_frac": 0.0
+    },
+    "storm_auto": {
+      "gp_mean": 0.20281058220487158,
+      "gp_late": 0.2253720238095238,
+      "alive_late": 9.614583333333334,
+      "storm_frac": 0.8208333333333333
+    }
+  },
+  "delta": {
+    "eng_minus_base_gp_late": 0.16032366071428572,
+    "storm_minus_base_gp_late": 0.2253720238095238,
+    "storm_minus_eng_gp_late": 0.0650483630952381,
+    "storm_minus_eng_alive_late": 1.583333333333334
+  },
+  "api": {
+    "plan_actions_storm_mode": [
+      "off",
+      "auto",
+      "on"
+    ],
+    "HealthEngine_storm_mode": true,
+    "apply_shield_uses_felt_scale": true
+  },
+  "note": "Section 6 next build \u2014 storm_mode actuate skin + 429 hell demo"
+}

@@ -37,17 +37,36 @@ out = eng.step(I=1.6)   # -> stability, actions hint
 
 ## 3. Actuate
 
-**Input:** kernel `stability` (and optional your rolling success)  
-**Output:** actions you already understand: shield load, quarantine N, revive N, cool retries
+**Input:** kernel `stability` (and optional your rolling success / env load)  
+**Output:** shield load, quarantine N, revive N, cool retries, optional **storm shell**
 
 ```python
-from nodes.actuate import plan_actions
+from nodes.actuate import plan_actions, apply_shield
 
-plan = plan_actions(stability=0.91, success_rate=0.55)
-# plan.shield_scale, plan.quarantine_k, plan.revive_k, plan.cool_retries
+plan = plan_actions(
+    stability=0.91,
+    success_rate=0.55,
+    env_load=2.4,
+    thrash=0.9,
+    storm_mode="auto",   # off | auto | on
+    budget_remaining=0.3,
+)
+# plan.shield_scale, plan.storm_active, plan.storm_scale, plan.felt_scale()
+felt = apply_shield(env_load=2.4, plan=plan)
+```
+
+`storm_mode="auto"` deepens felt-load cut under high env/thrash (429 hell).  
+DNA stays frozen — this is an actuate skin, not a second kernel.
+
+```python
+from nodes.engine_loop import HealthEngine
+eng = HealthEngine(seed=42, storm_mode="auto")
+out = eng.step_from_metrics(success_rate=0.5, env_load=2.6, thrash=1.0, goodput=0.2)
 ```
 
 Apply `plan` in *your* code (kill worst workers, lower concurrency, etc.).
+
+**429 hell demo:** `python real_world/storm_mode_429_demo.py`
 
 ## Performance claim (how to verify)
 

@@ -19,7 +19,7 @@ if str(ROOT) not in sys.path:
 
 import KERNEL_v1 as K  # noqa: E402
 
-from .actuate import ActionPlan, plan_actions  # noqa: E402
+from .actuate import ActionPlan, StormMode, plan_actions  # noqa: E402
 from .ingest import to_interference  # noqa: E402
 
 
@@ -28,13 +28,13 @@ class HealthEngine:
     Frozen-DNA health controller.
 
     Typical use:
-        eng = HealthEngine(seed=42)
+        eng = HealthEngine(seed=42, storm_mode="auto")
         I = to_interference(success_rate=0.6, env_load=1.5)
-        out = eng.step(I)
-        # out["stability"], out["plan"]
+        out = eng.step(I, env_load=1.5)
+        # out["stability"], out["plan"]  (plan.storm_active when shell on)
     """
 
-    def __init__(self, seed: int = 42):
+    def __init__(self, seed: int = 42, storm_mode: StormMode = "off"):
         self.rng = np.random.default_rng(seed)
         self.agents = K.make_swarm(self.rng)
         self.paradox = K.Paradox(K.PROMOTED_DNA)
@@ -42,6 +42,8 @@ class HealthEngine:
         self.ambient = 0.0
         self.last_stability = 0.88
         self.steps = 0
+        self.storm_mode: StormMode = storm_mode
+        self._prev_env: float | None = None
 
     def step(
         self,
@@ -49,6 +51,10 @@ class HealthEngine:
         *,
         success_rate: float | None = None,
         goodput: float | None = None,
+        env_load: float | None = None,
+        thrash: float | None = None,
+        storm_mode: StormMode | None = None,
+        budget_remaining: float | None = None,
     ) -> dict[str, Any]:
         """One kernel cycle at interference I. Returns stability + action plan."""
         I = float(np.clip(I, 0.4, 3.0))
@@ -60,13 +66,33 @@ class HealthEngine:
         stab = K.stability(self.agents)
         self.last_stability = stab
         self.steps += 1
-        plan = plan_actions(stab, success_rate=success_rate, goodput=goodput, target=K.TARGET_STABILITY)
+
+        env = env_load
+        d_env = None
+        if env is not None:
+            if self._prev_env is not None:
+                d_env = float(env) - float(self._prev_env)
+            self._prev_env = float(env)
+
+        mode: StormMode = storm_mode if storm_mode is not None else self.storm_mode
+        plan = plan_actions(
+            stab,
+            success_rate=success_rate,
+            goodput=goodput,
+            env_load=env,
+            thrash=thrash,
+            storm_mode=mode,
+            d_env=d_env,
+            budget_remaining=budget_remaining,
+            target=K.TARGET_STABILITY,
+        )
         return {
             "t": self.steps,
             "I": I,
             "stability": stab,
             "plan": plan,
             "target": K.TARGET_STABILITY,
+            "storm_mode": mode,
         }
 
     def step_from_metrics(
@@ -76,6 +102,8 @@ class HealthEngine:
         env_load: float = 1.0,
         thrash: float = 0.0,
         goodput: float | None = None,
+        storm_mode: StormMode | None = None,
+        budget_remaining: float | None = None,
         **ingest_kw: Any,
     ) -> dict[str, Any]:
         """Ingest metrics then step (one call)."""
@@ -83,9 +111,18 @@ class HealthEngine:
             success_rate=success_rate,
             env_load=env_load,
             thrash=thrash,
+            budget_remaining=budget_remaining,
             **ingest_kw,
         )
-        return self.step(I, success_rate=success_rate, goodput=goodput)
+        return self.step(
+            I,
+            success_rate=success_rate,
+            goodput=goodput,
+            env_load=env_load,
+            thrash=thrash,
+            storm_mode=storm_mode,
+            budget_remaining=budget_remaining,
+        )
 
 
 def smoke_demo(steps: int = 40, seed: int = 42) -> dict:

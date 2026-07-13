@@ -86,6 +86,7 @@ cd experiments\storm_shell
 python hell_beacons_surge_demo.py
 python storm_surge_learn_cycles.py
 python toughen_then_hell_eval.py
+python storm_mode_429_demo.py
 ```
 
 See `experiments/storm_shell/README.md` and last-run plots under `experiments/storm_shell/out/`.
