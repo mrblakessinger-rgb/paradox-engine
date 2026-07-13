@@ -24,7 +24,16 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-ROOT = Path(__file__).resolve().parents[1]
+def _find_root() -> Path:
+    p = Path(__file__).resolve().parent
+    for _ in range(6):
+        if (p / 'KERNEL_v1.py').exists():
+            return p
+        p = p.parent
+    return Path(__file__).resolve().parents[2]
+
+
+ROOT = _find_root()
 sys.path.insert(0, str(ROOT))
 
 from nodes.engine_loop import HealthEngine
