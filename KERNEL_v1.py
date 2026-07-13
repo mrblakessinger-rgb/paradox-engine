@@ -101,6 +101,10 @@ PROMOTED_DNA: dict[str, Any] = {
         "weekly_drill": (
             "once per week Paradox engages storm pack for arsenal practice (weekly_arsenal_drill)"
         ),
+        "credit_loop": (
+            "forecast vs actual + counterfactual best practice feed intuition (capped); "
+            "swarm never stores the credit ledger"
+        ),
     },
 }
 

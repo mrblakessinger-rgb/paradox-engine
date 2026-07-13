@@ -30,6 +30,7 @@ from .actuate import (  # noqa: E402
     plan_actions,
 )
 from .ingest import to_interference  # noqa: E402
+from .paradox_credit import CreditEngine  # noqa: E402
 
 
 class HealthEngine:
@@ -39,6 +40,7 @@ class HealthEngine:
     - storm_mode auto by default (shell + beacons)
     - Paradox live damper policy each step
     - weekly arsenal drill: once per week engages storm pack on purpose
+    - credit_loop: forecast → actual → counterfactual → intuition (optional, default on)
     """
 
     def __init__(
@@ -48,6 +50,8 @@ class HealthEngine:
         *,
         weekly_drill: bool = True,
         steps_per_week: int = 168,
+        credit_loop: bool = True,
+        credit_lr: float = 1.0,
     ):
         self.rng = np.random.default_rng(seed)
         self.agents = K.make_swarm(self.rng)
@@ -76,6 +80,10 @@ class HealthEngine:
             "weekly_drill",
             "once per week Paradox engages storm pack for arsenal practice (weekly_arsenal_drill)",
         )
+        self.paradox.wisdom.setdefault(
+            "credit_loop",
+            "forecast vs actual + counterfactual best practice feed intuition (capped)",
+        )
         self.paradox.install_drivers(self.agents)
         self.ambient = 0.0
         self.last_stability = 0.88
@@ -86,9 +94,18 @@ class HealthEngine:
             steps_per_week=steps_per_week,
             enabled=weekly_drill,
         )
+        self.credit_loop = bool(credit_loop)
+        self.credit = CreditEngine(
+            intuition=self.paradox.intuition,
+            wisdom=self.paradox.wisdom,
+            lr_scale=float(credit_lr),
+        )
+        self.credit.attach_paradox(self.paradox)
         self._prev_env: float | None = None
         self._last_storm_active = False
         self._last_damper = float(self.paradox.intuition.get("damper_bias", 2.0))
+        self._last_goodput: float | None = None
+        self._last_alive_frac: float | None = None
 
     def step(
         self,
@@ -167,6 +184,22 @@ class HealthEngine:
             force_storm_reason=self.weekly_drill.reason if drill else "",
         )
 
+        # Credit loop: open cycle with forecast *before* we only have prior goodput
+        if self.credit_loop:
+            self.credit.intuition = self.paradox.intuition
+            self.credit.wisdom = self.paradox.wisdom
+            self.credit.open_cycle(
+                step_i,
+                env_load=float(env),
+                thrash=float(thr or 0.0),
+                budget=float(budget_remaining if budget_remaining is not None else 1.0),
+                empty_rate=float(empty_tool_rate or 0.0),
+                stability=float(stab),
+                goodput=goodput if goodput is not None else self._last_goodput,
+                plan=plan,
+                damper_live=self._last_damper,
+            )
+
         # Update damper again if latch just flipped this step
         if plan.storm_active != self._last_storm_active or drill:
             self._last_damper = apply_paradox_damper_to_swarm(
@@ -201,7 +234,51 @@ class HealthEngine:
             "damper_live": self._last_damper,
             "damper_base": base_d,
             "weekly_drill": drill,
+            "credit_enabled": self.credit_loop,
         }
+
+    def observe_actual(
+        self,
+        *,
+        goodput: float,
+        alive_frac: float,
+        stability: float | None = None,
+    ) -> dict[str, Any] | None:
+        """
+        Call after applying plan to the outer world each step.
+        Closes forecast vs actual + counterfactual for that cycle.
+        """
+        if not self.credit_loop:
+            return None
+        stab = float(stability if stability is not None else self.last_stability)
+        self._last_goodput = float(goodput)
+        self._last_alive_frac = float(alive_frac)
+        rec = self.credit.close_cycle(
+            actual_stab=stab,
+            actual_goodput=float(goodput),
+            actual_alive_frac=float(alive_frac),
+        )
+        if rec is None:
+            return None
+        return {
+            "err_stab": rec.err_stab,
+            "err_gp": rec.err_gp,
+            "best_action": rec.best_action,
+            "regret": rec.best_score - rec.actual_score,
+            "pred_gp": rec.pred_goodput,
+            "actual_gp": rec.actual_goodput,
+        }
+
+    def end_episode_credit(self, *, max_delta: float | None = None) -> dict[str, Any]:
+        """End of episode: calibrate forecasts + apply best-practice intuition deltas."""
+        if not self.credit_loop:
+            return {"n_cycles": 0, "skipped": True}
+        self.credit.intuition = self.paradox.intuition
+        self.credit.wisdom = self.paradox.wisdom
+        report = self.credit.end_episode_learn(max_delta=max_delta)
+        # re-bind wisdom dict on paradox
+        self.paradox.wisdom = self.credit.wisdom
+        return report
 
     def step_from_metrics(
         self,

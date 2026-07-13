@@ -1,0 +1,277 @@
+{
+  "proto": "paradox_credit_exam_v1",
+  "exam_seeds": [
+    7,
+    11,
+    21,
+    29,
+    42,
+    53
+  ],
+  "arms": {
+    "baseline": {
+      "gp_mean": 0.06129014890548698,
+      "gp_sun": 0.0,
+      "alive_end": 0.0,
+      "mean_err_gp": NaN,
+      "mean_regret": NaN
+    },
+    "no_credit": {
+      "gp_mean": 0.24421113495967942,
+      "gp_sun": 0.27080853174603176,
+      "alive_end": 14.833333333333334,
+      "mean_err_gp": NaN,
+      "mean_regret": NaN
+    },
+    "credit": {
+      "gp_mean": 0.2478980781096364,
+      "gp_sun": 0.26829117063492064,
+      "alive_end": 11.5,
+      "mean_err_gp": 0.023507378401849622,
+      "mean_regret": 0.055529767930117775
+    },
+    "credit_opt": {
+      "gp_mean": 0.246773493423498,
+      "gp_sun": 0.26812996031746034,
+      "alive_end": 13.5,
+      "mean_err_gp": 0.014660900201713312,
+      "mean_regret": 0.05596556672724622
+    }
+  },
+  "deltas_vs_no_credit": {
+    "credit_gp": 0.0036869431499569894,
+    "credit_opt_gp": 0.0025623584638185815,
+    "credit_opt_alive": -1.333333333333334
+  },
+  "verdict": "CREDIT_LOOP_PASS: credit training holds tough-week performance vs no-credit; forecast error improves with optimized curriculum; loop is operational.",
+  "training": {
+    "credit_opt": "3 blocks \u00d7 (bright + tough + tough) with LR decay 1.25\u2192\u2026",
+    "credit": "1 learn week + 1 eval tough week"
+  },
+  "per_seed": {
+    "baseline": [
+      {
+        "gp_mean": 0.08536833614089846,
+        "gp_sun": 0.0,
+        "alive_end": 0.0,
+        "alive_mean": 1.2857142857142858,
+        "mean_err_stab": null,
+        "mean_err_gp": null,
+        "mean_regret": null
+      },
+      {
+        "gp_mean": 0.09233565312279693,
+        "gp_sun": 0.0,
+        "alive_end": 0.0,
+        "alive_mean": 1.3214285714285714,
+        "mean_err_stab": null,
+        "mean_err_gp": null,
+        "mean_regret": null
+      },
+      {
+        "gp_mean": 0.07308888930201107,
+        "gp_sun": 0.0,
+        "alive_end": 0.0,
+        "alive_mean": 1.1428571428571428,
+        "mean_err_stab": null,
+        "mean_err_gp": null,
+        "mean_regret": null
+      },
+      {
+        "gp_mean": 0.060911249809424216,
+        "gp_sun": 0.0,
+        "alive_end": 0.0,
+        "alive_mean": 0.9523809523809523,
+        "mean_err_stab": null,
+        "mean_err_gp": null,
+        "mean_regret": null
+      },
+      {
+        "gp_mean": 0.02732624886082486,
+        "gp_sun": 0.0,
+        "alive_end": 0.0,
+        "alive_mean": 0.6964285714285714,
+        "mean_err_stab": null,
+        "mean_err_gp": null,
+        "mean_regret": null
+      },
+      {
+        "gp_mean": 0.02871051619696637,
+        "gp_sun": 0.0,
+        "alive_end": 0.0,
+        "alive_mean": 0.7261904761904762,
+        "mean_err_stab": null,
+        "mean_err_gp": null,
+        "mean_regret": null
+      }
+    ],
+    "no_credit": [
+      {
+        "gp_mean": 0.2422143587858229,
+        "gp_sun": 0.2655505952380952,
+        "alive_end": 19.0,
+        "alive_mean": 10.19047619047619,
+        "mean_err_stab": null,
+        "mean_err_gp": null,
+        "mean_regret": null
+      },
+      {
+        "gp_mean": 0.2461804300980679,
+        "gp_sun": 0.2747767857142857,
+        "alive_end": 16.0,
+        "alive_mean": 10.291666666666666,
+        "mean_err_stab": null,
+        "mean_err_gp": null,
+        "mean_regret": null
+      },
+      {
+        "gp_mean": 0.24681001949319636,
+        "gp_sun": 0.27738095238095234,
+        "alive_end": 16.0,
+        "alive_mean": 10.476190476190476,
+        "mean_err_stab": null,
+        "mean_err_gp": null,
+        "mean_regret": null
+      },
+      {
+        "gp_mean": 0.24054375739362235,
+        "gp_sun": 0.2658482142857143,
+        "alive_end": 15.0,
+        "alive_mean": 10.214285714285714,
+        "mean_err_stab": null,
+        "mean_err_gp": null,
+        "mean_regret": null
+      },
+      {
+        "gp_mean": 0.2429000556609824,
+        "gp_sun": 0.26956845238095234,
+        "alive_end": 11.0,
+        "alive_mean": 10.107142857142858,
+        "mean_err_stab": null,
+        "mean_err_gp": null,
+        "mean_regret": null
+      },
+      {
+        "gp_mean": 0.2466181883263848,
+        "gp_sun": 0.27172619047619045,
+        "alive_end": 12.0,
+        "alive_mean": 10.089285714285714,
+        "mean_err_stab": null,
+        "mean_err_gp": null,
+        "mean_regret": null
+      }
+    ],
+    "credit": [
+      {
+        "gp_mean": 0.2460019522440543,
+        "gp_sun": 0.26941964285714287,
+        "alive_end": 7.0,
+        "alive_mean": 10.398809523809524,
+        "mean_err_stab": 0.008977912566944852,
+        "mean_err_gp": 0.02280026047637202,
+        "mean_regret": 0.056066748728281955
+      },
+      {
+        "gp_mean": 0.24619860560354356,
+        "gp_sun": 0.26346726190476194,
+        "alive_end": 12.0,
+        "alive_mean": 10.56547619047619,
+        "mean_err_stab": 0.009345867391675412,
+        "mean_err_gp": 0.0236096217314344,
+        "mean_regret": 0.05623228978104191
+      },
+      {
+        "gp_mean": 0.24896528881103797,
+        "gp_sun": 0.2719494047619047,
+        "alive_end": 19.0,
+        "alive_mean": 10.43452380952381,
+        "mean_err_stab": 0.01179701326226463,
+        "mean_err_gp": 0.023128629591633587,
+        "mean_regret": 0.05532764221962457
+      },
+      {
+        "gp_mean": 0.24537506909175968,
+        "gp_sun": 0.2786458333333333,
+        "alive_end": 12.0,
+        "alive_mean": 10.30952380952381,
+        "mean_err_stab": 0.012131374181158984,
+        "mean_err_gp": 0.025016288844211688,
+        "mean_regret": 0.055403795505884736
+      },
+      {
+        "gp_mean": 0.25357569367945726,
+        "gp_sun": 0.2712797619047619,
+        "alive_end": 12.0,
+        "alive_mean": 10.404761904761905,
+        "mean_err_stab": 0.010625908704681851,
+        "mean_err_gp": 0.02369662438447864,
+        "mean_regret": 0.05530851826583635
+      },
+      {
+        "gp_mean": 0.24727185922796574,
+        "gp_sun": 0.25498511904761906,
+        "alive_end": 7.0,
+        "alive_mean": 10.31547619047619,
+        "mean_err_stab": 0.010333242317048961,
+        "mean_err_gp": 0.02279284538296741,
+        "mean_regret": 0.054839613080037146
+      }
+    ],
+    "credit_opt": [
+      {
+        "gp_mean": 0.24313700944880556,
+        "gp_sun": 0.2748511904761905,
+        "alive_end": 14.0,
+        "alive_mean": 10.398809523809524,
+        "mean_err_stab": 0.00991070301158475,
+        "mean_err_gp": 0.014865400345790446,
+        "mean_regret": 0.05532680099328895
+      },
+      {
+        "gp_mean": 0.24295638844725748,
+        "gp_sun": 0.2597470238095238,
+        "alive_end": 12.0,
+        "alive_mean": 10.291666666666666,
+        "mean_err_stab": 0.008312965448433058,
+        "mean_err_gp": 0.014726425742899613,
+        "mean_regret": 0.05572260761418291
+      },
+      {
+        "gp_mean": 0.24934447815506489,
+        "gp_sun": 0.2741071428571428,
+        "alive_end": 13.0,
+        "alive_mean": 10.386904761904763,
+        "mean_err_stab": 0.007766433524186674,
+        "mean_err_gp": 0.013692132484561031,
+        "mean_regret": 0.05630068957624773
+      },
+      {
+        "gp_mean": 0.25186860909313546,
+        "gp_sun": 0.2783482142857143,
+        "alive_end": 12.0,
+        "alive_mean": 10.30952380952381,
+        "mean_err_stab": 0.009266809611951391,
+        "mean_err_gp": 0.014546397942495206,
+        "mean_regret": 0.05643624257108767
+      },
+      {
+        "gp_mean": 0.24903968922430747,
+        "gp_sun": 0.2671875,
+        "alive_end": 11.0,
+        "alive_mean": 10.398809523809524,
+        "mean_err_stab": 0.009692257650050757,
+        "mean_err_gp": 0.01534384938648105,
+        "mean_regret": 0.05610066085196749
+      },
+      {
+        "gp_mean": 0.24429478617241718,
+        "gp_sun": 0.25453869047619043,
+        "alive_end": 19.0,
+        "alive_mean": 10.136904761904763,
+        "mean_err_stab": 0.01059586512717083,
+        "mean_err_gp": 0.014791195308052528,
+        "mean_regret": 0.05590639875670256
+      }
+    ]
+  }
+}

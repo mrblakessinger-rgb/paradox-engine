@@ -13,6 +13,7 @@ from .actuate import (
     plan_actions,
 )
 from .engine_loop import HealthEngine
+from .paradox_credit import CreditEngine
 
 __all__ = [
     "to_interference",
@@ -26,4 +27,5 @@ __all__ = [
     "paradox_damper_policy",
     "plan_actions",
     "HealthEngine",
+    "CreditEngine",
 ]
