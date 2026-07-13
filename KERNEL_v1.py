@@ -89,6 +89,12 @@ PROMOTED_DNA: dict[str, Any] = {
             "auto storm pack is in the arsenal for extreme env/thrash/budget/goodput spikes; "
             "engages without operator switch; releases after calm holds"
         ),
+        "beacon_arsenal": (
+            "when storm pack is active, beacons pull edge agents toward core; same latch as shell"
+        ),
+        "bright_path": (
+            "success and recovery scars build competent optimism; trauma must not monopolize intuition"
+        ),
     },
 }
 
@@ -313,32 +319,89 @@ class Paradox:
             "raw episode scars absorbed by Paradox only; swarm receives instincts, not terror"
         )
 
-        # --- tiny intuition nudges (capped) — competence, not fear ---
-        # More tighten scars → slightly higher failure_respect / damper, not freeze
-        deltas = {}
-        if n_tighten > n_climb and n_tighten >= 2:
-            deltas["failure_respect"] = min(max_intuition_delta, 0.04 + 0.005 * min(n_tighten, 8))
-            deltas["damper_bias"] = min(max_intuition_delta, 0.03 + 0.004 * min(n_tighten, 8))
-            deltas["explore_bias"] = -min(max_intuition_delta * 0.5, 0.02)
-        if n_climb >= 2 or (recovery_late is not None and float(recovery_late) >= 0.6):
-            deltas["repair_bias"] = min(max_intuition_delta, 0.03)
-            deltas["floor_boost"] = min(0.02, 0.01)
-        if hard_break is None and final_alive is not None:
-            deltas["pairing_strength"] = min(max_intuition_delta, 0.02)
-            deltas["countermeasure_invest"] = min(max_intuition_delta, 0.03)
+        # --- bright-path counts (success / optimism, not only trauma) ---
+        n_bright = sum(
+            1
+            for r in reasons
+            if any(
+                k in r
+                for k in (
+                    "bright",
+                    "success",
+                    "win",
+                    "settle_alive",
+                    "mild_ok",
+                    "good_day",
+                )
+            )
+        )
+        n_climb = n_climb + n_bright  # bright wins count as climb fuel
 
+        # --- tiny intuition nudges (capped) — competence, not fear ---
+        deltas = {}
+        # Trauma path: only when tighten clearly dominates climb/bright
+        if n_tighten > n_climb and n_tighten >= 2:
+            deltas["failure_respect"] = min(max_intuition_delta, 0.035 + 0.004 * min(n_tighten, 8))
+            deltas["damper_bias"] = min(max_intuition_delta, 0.025 + 0.003 * min(n_tighten, 8))
+            # softer explore cut than before (anti-PTSD)
+            deltas["explore_bias"] = -min(max_intuition_delta * 0.35, 0.015)
+        # Bright / recovery path: generally optimistic competence
+        if n_climb >= 2 or n_bright >= 2 or (
+            recovery_late is not None and float(recovery_late) >= 0.55
+        ):
+            deltas["repair_bias"] = max(
+                deltas.get("repair_bias", 0.0), min(max_intuition_delta, 0.04)
+            )
+            deltas["floor_boost"] = max(deltas.get("floor_boost", 0.0), min(0.025, 0.015))
+            deltas["pairing_strength"] = max(
+                deltas.get("pairing_strength", 0.0), min(max_intuition_delta, 0.03)
+            )
+            # mild explore floor — willingness to re-enter, not recklessness
+            deltas["explore_bias"] = max(deltas.get("explore_bias", 0.0), min(0.02, 0.012))
+            # if bright dominates, ease damper slightly (not freeze)
+            if n_climb + n_bright > n_tighten + 1:
+                deltas["damper_bias"] = min(deltas.get("damper_bias", 0.0), -0.01)
+        if hard_break is None and final_alive is not None:
+            deltas["pairing_strength"] = max(
+                deltas.get("pairing_strength", 0.0), min(max_intuition_delta, 0.025)
+            )
+            deltas["countermeasure_invest"] = min(max_intuition_delta, 0.03)
+        if meta.get("bright_week") or meta.get("optimistic_pass"):
+            self.wisdom["bright_path"] = (
+                "success and recovery scars build competent optimism; trauma must not monopolize intuition"
+            )
+            report["wisdom_added"].append(("bright_path", self.wisdom["bright_path"]))
+            deltas["repair_bias"] = max(deltas.get("repair_bias", 0.0), 0.03)
+            deltas["explore_bias"] = max(deltas.get("explore_bias", 0.0), 0.015)
+            deltas["failure_respect"] = min(deltas.get("failure_respect", 0.0), 0.01)
+
+        # soft caps — trauma must not freeze the swarm
+        DAMPER_SOFT = 2.30
         for k, d in deltas.items():
-            old = float(self.intuition.get(k, 1.0))
-            new = float(np.clip(old + d, 0.05, 2.5))
-            # never let target_coherence get dragged by trauma
             if k == "target_coherence":
                 continue
+            old = float(self.intuition.get(k, 1.0))
+            new = float(np.clip(old + d, 0.05, 2.5))
+            if k == "damper_bias":
+                new = min(new, DAMPER_SOFT)
+            if k == "explore_bias":
+                new = float(np.clip(new, 0.06, 0.55))
             self.intuition[k] = new
             report["intuition_deltas"][k] = {"from": old, "to": new, "delta": d}
+
+        # Always reinforce anti-lock + bright balance
+        self.wisdom["anti_lock"] = "do not live at 1.0; soft ceiling 0.97"
+        self.wisdom.setdefault(
+            "bright_path",
+            "success and recovery scars build competent optimism; trauma must not monopolize intuition",
+        )
 
         # Clear raw buffer after compression — trauma does not linger as raw tape
         self._raw_scars = []
         report["cleared_raw"] = True
+        report["n_bright"] = n_bright
+        report["n_climb"] = n_climb
+        report["n_tighten"] = n_tighten
         report["episode_meta_kept"] = {
             k: meta.get(k)
             for k in (
@@ -347,10 +410,34 @@ class Paradox:
                 "first_soft_break",
                 "first_hard_break",
                 "survived_long_hell",
+                "bright_week",
+                "optimistic_pass",
             )
             if k in meta
         }
         return report
+
+    def absorb_bright_wins(
+        self,
+        wins: list,
+        *,
+        episode_meta: dict | None = None,
+    ) -> None:
+        """
+        Bright-path intake: successful / mild / recovery episodes.
+        Same buffer as scars — compress balances them against trauma.
+        Tag reasons with bright_/success_/climb_ so compress weights optimism.
+        """
+        tagged = []
+        for w in wins or []:
+            w = dict(w)
+            r = str(w.get("reason", "bright_win"))
+            if not any(k in r for k in ("bright", "success", "climb", "settle", "mild", "win")):
+                w["reason"] = f"bright_{r}"
+            tagged.append(w)
+        meta = dict(episode_meta or {})
+        meta.setdefault("optimistic_pass", True)
+        self.absorb_episode(tagged, episode_meta=meta)
 
     def install_drivers(self, agents: list[SwarmMember]):
         """One-way gift of instinct. Swarm does not know the source."""

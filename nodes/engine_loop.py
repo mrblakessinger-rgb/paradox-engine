@@ -20,18 +20,24 @@ if str(ROOT) not in sys.path:
 
 import KERNEL_v1 as K  # noqa: E402
 
-from .actuate import ActionPlan, StormLatch, StormMode, plan_actions  # noqa: E402
+from .actuate import (  # noqa: E402
+    ActionPlan,
+    StormLatch,
+    StormMode,
+    apply_beacons_to_swarm,
+    plan_actions,
+)
 from .ingest import to_interference  # noqa: E402
 
 
 class HealthEngine:
     """
-    Frozen-DNA health controller with **automatic storm pack**.
+    Frozen-DNA health controller with **automatic storm pack + beacons**.
 
     Typical use (no storm_mode needed):
         eng = HealthEngine(seed=42)
         out = eng.step_from_metrics(success_rate=0.5, env_load=2.2, thrash=0.9)
-        # out["plan"].storm_active True when triggers fire
+        # out["plan"].storm_active / beacon_active when triggers fire
     """
 
     def __init__(self, seed: int = 42, storm_mode: StormMode = "auto"):
@@ -45,6 +51,15 @@ class HealthEngine:
             "storm_arsenal",
             "auto storm pack engages on env/thrash/budget/goodput/I spikes; "
             "no operator switch — release when calm holds",
+        )
+        self.paradox.wisdom.setdefault(
+            "beacon_arsenal",
+            "when storm pack is active, beacons pull edge agents toward core; "
+            "same latch as shell — Paradox deploys both without operator step-in",
+        )
+        self.paradox.wisdom.setdefault(
+            "bright_path",
+            "success/climb scars build competence optimism; trauma does not monopolize intuition",
         )
         self.paradox.install_drivers(self.agents)
         self.ambient = 0.0
@@ -100,6 +115,11 @@ class HealthEngine:
             countermeasure_invest=cm,
             storm_latch=self.storm_latch if mode == "auto" else None,
         )
+        # Beacons under same storm latch — kernel-side edge→core pull
+        n_pulled = apply_beacons_to_swarm(self.agents, plan, ceiling=K.CEILING_SOFT)
+        if n_pulled:
+            stab = K.stability(self.agents)
+            self.last_stability = stab
         return {
             "t": self.steps,
             "I": I,
@@ -109,6 +129,8 @@ class HealthEngine:
             "storm_mode": mode,
             "storm_active": plan.storm_active,
             "storm_reason": plan.storm_reason,
+            "beacon_active": plan.beacon_active,
+            "beacon_pulled": n_pulled,
             "countermeasure_invest": cm,
         }
 

@@ -4,6 +4,7 @@ from .ingest import to_interference
 from .actuate import (
     ActionPlan,
     StormLatch,
+    apply_beacons_to_swarm,
     apply_shield,
     evaluate_storm_triggers,
     plan_actions,
@@ -14,6 +15,7 @@ __all__ = [
     "to_interference",
     "ActionPlan",
     "StormLatch",
+    "apply_beacons_to_swarm",
     "apply_shield",
     "evaluate_storm_triggers",
     "plan_actions",

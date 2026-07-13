@@ -1,0 +1,276 @@
+{
+  "proto": "beacon_bright_compare_v1",
+  "rounds": [
+    {
+      "round": 1,
+      "arms": {
+        "baseline": {
+          "gp_mean": 0.08359762618856882,
+          "gp_sun": 0.0,
+          "alive_end": 0.0,
+          "alive_mean": 1.25,
+          "storm_frac": 0.0,
+          "beacon_frac": 0.0,
+          "by_day_gp": {
+            "Mon": 0.23372008966918803,
+            "Tue": 0.14253472222222222,
+            "Wed": 0.10419146825396826,
+            "Thu": 0.07755456349206351,
+            "Fri": 0.026091269841269835,
+            "Sat": 0.0010912698412698413,
+            "Sun": 0.0
+          }
+        },
+        "engine_off": {
+          "gp_mean": 0.24018610271660013,
+          "gp_sun": 0.26966765873015874,
+          "alive_end": 11.333333333333334,
+          "alive_mean": 8.613095238095239,
+          "storm_frac": 0.0,
+          "beacon_frac": 0.0,
+          "by_day_gp": {
+            "Mon": 0.31004775869874046,
+            "Tue": 0.29563492063492064,
+            "Wed": 0.23353174603174606,
+            "Thu": 0.1888640873015873,
+            "Fri": 0.14260912698412698,
+            "Sat": 0.24094742063492058,
+            "Sun": 0.26966765873015874
+          }
+        },
+        "storm_beacons": {
+          "gp_mean": 0.24540145214400935,
+          "gp_sun": 0.2734623015873016,
+          "alive_end": 15.666666666666666,
+          "alive_mean": 10.20238095238095,
+          "storm_frac": 0.9821428571428572,
+          "beacon_frac": 0.9821428571428572,
+          "by_day_gp": {
+            "Mon": 0.31302345865885917,
+            "Tue": 0.30158730158730157,
+            "Wed": 0.2420634920634921,
+            "Thu": 0.19828869047619047,
+            "Fri": 0.1552579365079365,
+            "Sat": 0.23412698412698416,
+            "Sun": 0.2734623015873016
+          }
+        },
+        "bright_then_storm": {
+          "gp_mean": 0.24488543483441605,
+          "gp_sun": 0.2746279761904762,
+          "alive_end": 13.0,
+          "alive_mean": 10.216269841269842,
+          "storm_frac": 0.9761904761904763,
+          "beacon_frac": 0.9761904761904763,
+          "by_day_gp": {
+            "Mon": 0.31856312320599195,
+            "Tue": 0.29635416666666664,
+            "Wed": 0.24660218253968255,
+            "Thu": 0.19744543650793647,
+            "Fri": 0.14642857142857144,
+            "Sat": 0.23417658730158727,
+            "Sun": 0.2746279761904762
+          }
+        }
+      }
+    },
+    {
+      "round": 2,
+      "arms": {
+        "baseline": {
+          "gp_mean": 0.07331908535479603,
+          "gp_sun": 0.0,
+          "alive_end": 0.0,
+          "alive_mean": 1.1428571428571428,
+          "storm_frac": 0.0,
+          "beacon_frac": 0.0,
+          "by_day_gp": {
+            "Mon": 0.22667605780103248,
+            "Tue": 0.1422123015873016,
+            "Wed": 0.1189236111111111,
+            "Thu": 0.025148809523809518,
+            "Fri": 0.0002728174603174603,
+            "Sat": 0.0,
+            "Sun": 0.0
+          }
+        },
+        "engine_off": {
+          "gp_mean": 0.23782075975182657,
+          "gp_sun": 0.2704365079365079,
+          "alive_end": 10.333333333333334,
+          "alive_mean": 8.640873015873016,
+          "storm_frac": 0.0,
+          "beacon_frac": 0.0,
+          "by_day_gp": {
+            "Mon": 0.2989715087389766,
+            "Tue": 0.2896081349206349,
+            "Wed": 0.23343253968253966,
+            "Thu": 0.19833829365079367,
+            "Fri": 0.14751984126984127,
+            "Sat": 0.22643849206349206,
+            "Sun": 0.2704365079365079
+          }
+        },
+        "storm_beacons": {
+          "gp_mean": 0.24113024868026703,
+          "gp_sun": 0.26706349206349206,
+          "alive_end": 14.0,
+          "alive_mean": 10.200396825396826,
+          "storm_frac": 0.9781746031746033,
+          "beacon_frac": 0.9781746031746033,
+          "by_day_gp": {
+            "Mon": 0.3080754312380598,
+            "Tue": 0.29476686507936506,
+            "Wed": 0.2372767857142857,
+            "Thu": 0.19603174603174603,
+            "Fri": 0.14967757936507933,
+            "Sat": 0.23501984126984124,
+            "Sun": 0.26706349206349206
+          }
+        },
+        "bright_then_storm": {
+          "gp_mean": 0.2421000035057829,
+          "gp_sun": 0.2666418650793651,
+          "alive_end": 13.666666666666666,
+          "alive_mean": 10.251984126984127,
+          "storm_frac": 0.9761904761904762,
+          "beacon_frac": 0.9761904761904762,
+          "by_day_gp": {
+            "Mon": 0.30779526263571855,
+            "Tue": 0.2935763888888889,
+            "Wed": 0.2340029761904762,
+            "Thu": 0.20047123015873017,
+            "Fri": 0.15654761904761905,
+            "Sat": 0.23566468253968254,
+            "Sun": 0.2666418650793651
+          }
+        }
+      }
+    },
+    {
+      "round": 3,
+      "arms": {
+        "baseline": {
+          "gp_mean": 0.047024213046781616,
+          "gp_sun": 0.0,
+          "alive_end": 0.0,
+          "alive_mean": 0.9126984126984127,
+          "storm_frac": 0.0,
+          "beacon_frac": 0.0,
+          "by_day_gp": {
+            "Mon": 0.2117835786290586,
+            "Tue": 0.06644345238095238,
+            "Wed": 0.04885912698412698,
+            "Thu": 0.0020833333333333333,
+            "Fri": 0.0,
+            "Sat": 0.0,
+            "Sun": 0.0
+          }
+        },
+        "engine_off": {
+          "gp_mean": 0.23720759736105015,
+          "gp_sun": 0.265625,
+          "alive_end": 10.333333333333334,
+          "alive_mean": 8.718253968253968,
+          "storm_frac": 0.0,
+          "beacon_frac": 0.0,
+          "by_day_gp": {
+            "Mon": 0.2975315545432244,
+            "Tue": 0.2899801587301587,
+            "Wed": 0.233655753968254,
+            "Thu": 0.1999503968253968,
+            "Fri": 0.14789186507936505,
+            "Sat": 0.22581845238095236,
+            "Sun": 0.265625
+          }
+        },
+        "storm_beacons": {
+          "gp_mean": 0.24189721431723496,
+          "gp_sun": 0.26773313492063494,
+          "alive_end": 15.666666666666666,
+          "alive_mean": 10.198412698412698,
+          "storm_frac": 0.9861111111111112,
+          "beacon_frac": 0.9861111111111112,
+          "by_day_gp": {
+            "Mon": 0.29372692879207324,
+            "Tue": 0.29263392857142856,
+            "Wed": 0.23348214285714286,
+            "Thu": 0.2075892857142857,
+            "Fri": 0.16267361111111112,
+            "Sat": 0.23544146825396825,
+            "Sun": 0.26773313492063494
+          }
+        },
+        "bright_then_storm": {
+          "gp_mean": 0.2435393030255482,
+          "gp_sun": 0.27006448412698414,
+          "alive_end": 15.666666666666666,
+          "alive_mean": 10.188492063492063,
+          "storm_frac": 0.9742063492063492,
+          "beacon_frac": 0.9742063492063492,
+          "by_day_gp": {
+            "Mon": 0.3002364307026468,
+            "Tue": 0.28643353174603176,
+            "Wed": 0.24340277777777777,
+            "Thu": 0.2071924603174603,
+            "Fri": 0.16004464285714284,
+            "Sat": 0.23740079365079367,
+            "Sun": 0.27006448412698414
+          }
+        }
+      }
+    }
+  ],
+  "aggregate": {
+    "baseline": {
+      "gp_mean": 0.06798030819671548,
+      "gp_sun": 0.0,
+      "alive_end": 0.0,
+      "alive_mean": 1.1018518518518519,
+      "storm_frac": 0.0,
+      "beacon_frac": 0.0
+    },
+    "engine_off": {
+      "gp_mean": 0.23840481994315896,
+      "gp_sun": 0.26857638888888885,
+      "alive_end": 10.666666666666666,
+      "alive_mean": 8.657407407407407,
+      "storm_frac": 0.0,
+      "beacon_frac": 0.0
+    },
+    "storm_beacons": {
+      "gp_mean": 0.24280963838050376,
+      "gp_sun": 0.26941964285714287,
+      "alive_end": 15.111111111111109,
+      "alive_mean": 10.200396825396824,
+      "storm_frac": 0.9821428571428572,
+      "beacon_frac": 0.9821428571428572
+    },
+    "bright_then_storm": {
+      "gp_mean": 0.24350824712191568,
+      "gp_sun": 0.27044477513227516,
+      "alive_end": 14.111111111111109,
+      "alive_mean": 10.218915343915343,
+      "storm_frac": 0.9755291005291006,
+      "beacon_frac": 0.9755291005291006
+    }
+  },
+  "deltas": {
+    "storm_beacons_vs_engine_off_gp": 0.004404818437344804,
+    "storm_beacons_vs_engine_off_alive": 4.444444444444443,
+    "bright_vs_storm_gp": 0.0006986087414119213,
+    "bright_vs_storm_alive": -1.0,
+    "bright_vs_storm_sun": 0.00102513227513229
+  },
+  "suggestions": [
+    "Keep beacons under storm latch \u2014 measurable lift vs engine_off.",
+    "Bright pre-feed subtle \u2014 increase bright scar weight or longer mild weeks before promote exams.",
+    "Never train only on hell: alternate bright_week : tough_week ~ 1:1 or 2:1.",
+    "Outer systems: when plan.beacon_active, prefer healthy workers / drain tail clients.",
+    "Do not lower blackout floor yet; tough week + beacons is the product regime."
+  ],
+  "how_optimism_works": {
+    "now": "Paradox absorb_bright_wins + compress balances climb/bright scars vs tighten; raises repair/pairing/explore floor; soft-caps damper; trauma cannot monopolize",
+    "optimal": "Alternate bright weeks and tough weeks; always compress mixed buffers; promote DNA only after multi-seed exam that includes both; swarm stays competent-optimistic not frozen or reckless"
+  }
+}

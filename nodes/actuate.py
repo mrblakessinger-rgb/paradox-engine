@@ -151,6 +151,11 @@ class ActionPlan:
     storm_active: bool = False
     storm_scale: float = 1.0
     storm_reason: str = ""  # why shell engaged / held / released
+    # --- beacons (edge → core), same latch as storm ---
+    beacon_active: bool = False
+    beacon_n: int = 0  # number of core attractors
+    beacon_edge_frac: float = 0.0  # fraction of fleet treated as edge
+    beacon_pull: float = 0.0  # 0..1 pull strength toward core
 
     def as_dict(self) -> dict:
         return {
@@ -164,6 +169,10 @@ class ActionPlan:
             "storm_active": self.storm_active,
             "storm_scale": self.storm_scale,
             "storm_reason": self.storm_reason,
+            "beacon_active": self.beacon_active,
+            "beacon_n": self.beacon_n,
+            "beacon_edge_frac": self.beacon_edge_frac,
+            "beacon_pull": self.beacon_pull,
             "felt_scale": self.felt_scale(),
         }
 
@@ -327,10 +336,14 @@ def plan_actions(
         elif br < 0.20 and open_traffic:
             conc_delta = min(conc_delta, 0)
 
-    # --- Storm pack (arsenal) ---
+    # --- Storm pack + beacons (arsenal) ---
     storm_active = False
     storm_scale = 1.0
     storm_reason = ""
+    beacon_active = False
+    beacon_n = 0
+    beacon_edge_frac = 0.0
+    beacon_pull = 0.0
     env_f = 0.0 if env is None else env
     thr_f = 0.0 if thr is None else thr
     d_env_f = 0.0 if d_env is None else float(d_env)
@@ -385,10 +398,20 @@ def plan_actions(
                     conc_delta = 0
             if conc_delta > 1:
                 conc_delta = 1
+            # Beacons: same latch as storm — pull edge toward core under extreme
+            beacon_active = True
+            beacon_n = 5 + (1 if env_f >= 2.2 or thr_f >= 1.0 else 0)
+            beacon_edge_frac = 0.22 if env_f < 2.4 else 0.26
+            shell_depth = max(0.0, 1.0 - storm_scale)
+            beacon_pull = float(
+                min(0.22, 0.10 + 0.14 * shell_depth + 0.03 * min(1.0, thr_f / 1.5))
+            )
             if note in ("hold", "nudge", "restore", "climb", "nudge_open", "restore_open"):
-                note = "storm_auto"
+                note = "storm_auto+beacons"
             elif "+storm" not in note:
-                note = f"{note}+storm"
+                note = f"{note}+storm+beacons"
+            else:
+                note = f"{note}+beacons"
 
     return ActionPlan(
         shield_scale=float(shield),
@@ -401,9 +424,53 @@ def plan_actions(
         storm_active=bool(storm_active),
         storm_scale=float(storm_scale),
         storm_reason=storm_reason,
+        beacon_active=bool(beacon_active),
+        beacon_n=int(beacon_n),
+        beacon_edge_frac=float(beacon_edge_frac),
+        beacon_pull=float(beacon_pull),
     )
 
 
 def apply_shield(env_load: float, plan: ActionPlan) -> float:
     """Felt load after base shield × storm shell."""
     return float(max(0.0, env_load * plan.felt_scale()))
+
+
+def apply_beacons_to_swarm(agents: list, plan: ActionPlan, *, ceiling: float = 0.97) -> int:
+    """
+    Kernel-side beacon pull: top-coherence agents attract edge (low coherence).
+    Same storm latch — only when plan.beacon_active.
+    Returns number of edge agents pulled.
+    Outer systems can mirror: prefer healthy workers, drain worst tail.
+    """
+    if not plan.beacon_active or plan.beacon_pull <= 0 or plan.beacon_n <= 0:
+        return 0
+    n = len(agents)
+    if n < 3:
+        return 0
+    try:
+        import numpy as np
+    except ImportError:
+        return 0
+
+    order = np.argsort([float(getattr(a, "coherence", 0.5)) for a in agents])
+    n_edge = max(1, int(round(n * float(plan.beacon_edge_frac or 0.22))))
+    n_beac = max(1, min(int(plan.beacon_n), n // 3))
+    edge_idx = [int(i) for i in order[:n_edge]]
+    beac_idx = [int(i) for i in order[-n_beac:]]
+    core = float(np.mean([agents[i].coherence for i in beac_idx]))
+    pull = float(plan.beacon_pull)
+    for i in edge_idx:
+        a = agents[i]
+        a.coherence = float(
+            max(0.0, min(ceiling, (1.0 - pull) * a.coherence + pull * core))
+        )
+        if hasattr(a, "flux"):
+            a.flux = float(a.flux * 0.90)
+        if hasattr(a, "velocity"):
+            a.velocity *= 0.92
+    # small core tax — beacons spend energy
+    tax = 0.006 * pull / 0.15
+    for i in beac_idx:
+        agents[i].coherence = float(max(0.0, min(ceiling, agents[i].coherence - tax)))
+    return len(edge_idx)
