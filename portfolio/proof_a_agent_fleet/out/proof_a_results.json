@@ -1,0 +1,32 @@
+{
+  "proof": "A_agent_fleet",
+  "kernel": "1.0",
+  "steps": 120,
+  "baseline_success": {
+    "mean": 0.4735416666666667,
+    "late_mean": 0.48541666666666666,
+    "p10": 0.1725,
+    "min": 0.075,
+    "max": 0.9
+  },
+  "engine_success": {
+    "mean": 0.6939583333333333,
+    "late_mean": 0.6864583333333334,
+    "p10": 0.525,
+    "min": 0.375,
+    "max": 0.95
+  },
+  "kernel_stability": {
+    "mean": 0.9441056995861572,
+    "late_mean": 0.9504415735801474,
+    "p10": 0.9392767881395163,
+    "min": 0.6556755259229142,
+    "max": 0.962627525189581
+  },
+  "improvement_mean": 0.22041666666666665,
+  "improvement_late": 0.20104166666666673,
+  "improvement_p10": 0.35250000000000004,
+  "baseline_final_active": 9,
+  "engine_final_active": 20,
+  "engine_final_quarantined": 0
+}

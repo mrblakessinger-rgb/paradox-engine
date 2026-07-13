@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"/><title>Proof C — Rate Limit</title>
+<style>
+body{margin:0;padding:28px;background:#0b0f14;color:#e8eef7;font-family:Segoe UI,sans-serif;max-width:900px}
+.ok{color:#5dffb0} .card{background:#121a24;border:1px solid #243044;border-radius:12px;padding:16px;margin:12px 0}
+img{max-width:100%;border-radius:8px} table{width:100%;border-collapse:collapse}
+td,th{padding:8px;border-bottom:1px solid #243044;text-align:left}
+</style></head><body>
+<h1>Proof C — API rate-limit / retry thrash</h1>
+<p><b>Problem:</b> Shared API budget. Storms cut capacity; retries stampede; clients burn out.</p>
+<p><b>Metric:</b> <code>goodput = successes / n_clients</code> (killing clients cannot fake a win).</p>
+<p><b>Approach:</b> KERNEL_v1 — shield load, cool retries, quarantine worst, revive when healthy.</p>
+<div class="card">
+<table>
+<tr><th></th><th>Baseline</th><th>Engine</th><th>Δ</th></tr>
+<tr><td>Mean goodput</td><td>0.018</td><td class="ok">0.253</td>
+<td>+0.235</td></tr>
+<tr><td>Late goodput</td><td>0.000</td><td class="ok">0.253</td>
+<td>+0.253</td></tr>
+<tr><td>p10 floor</td><td>0.000</td><td class="ok">0.193</td>
+<td>+0.193</td></tr>
+<tr><td>Late clients alive</td><td>0.0</td><td class="ok">8.6</td>
+<td>+8.6</td></tr>
+<tr><td>Kernel late</td><td>—</td><td>0.945</td><td>target 0.92</td></tr>
+</table>
+<p>Verdict: <b class="ok">ENGINE HELPS</b></p>
+<img src="proof_c_comparison.png"/>
+</div>
+</body></html>
