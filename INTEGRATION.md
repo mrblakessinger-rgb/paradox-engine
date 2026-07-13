@@ -44,6 +44,10 @@ out = eng.step(I=1.6)   # -> stability, actions hint
 `HealthEngine` defaults to `storm_mode="auto"`. Paradox treats the storm shell as
 an **arsenal** for extreme circumstances (wisdom: `storm_arsenal`).
 
+**Paradox also owns the live damper dial** (up in storm/drill, ease in calm; band ~1.45–2.28).  
+**Once per week** it runs an **arsenal drill** (`weekly_arsenal_drill`) so the pack
+stays practiced even in mild weeks — shell + beacons + damper upshift, still automatic.
+
 ### Auto trigger points (any → arm shell)
 
 | Signal | Enter | Exit (all + 3 calm steps) |

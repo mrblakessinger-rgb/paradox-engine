@@ -43,6 +43,100 @@ STORM_I_ARM = 1.55
 STORM_I_FULL = 3.4
 STORM_MAX_CUT = 0.48
 
+# Paradox-owned live damper band (not uncapped PTSD)
+DAMPER_LIVE_FLOOR = 1.45
+DAMPER_LIVE_CEILING = 2.28
+
+# Weekly arsenal drill (once per week of steps)
+WEEKLY_DRILL_STEPS_PER_WEEK = 168  # 7d × 24h
+WEEKLY_DRILL_OFFSET = 48           # ~Wed if Mon=0 (mid-week exercise)
+WEEKLY_DRILL_DURATION = 16         # ~16 steps of forced arsenal practice
+WEEKLY_DRILL_REASON = "weekly_arsenal_drill"
+
+
+@dataclass
+class WeeklyStormDrill:
+    """
+    Once a week, Paradox has a standing reason to engage the storm pack
+    (shell + beacons + damper upshift) even if env is only moderately hard.
+    Keeps the arsenal practiced; operators still need not intervene.
+    """
+
+    steps_per_week: int = WEEKLY_DRILL_STEPS_PER_WEEK
+    offset: int = WEEKLY_DRILL_OFFSET
+    duration: int = WEEKLY_DRILL_DURATION
+    reason: str = WEEKLY_DRILL_REASON
+    enabled: bool = True
+
+    def active(self, step_index: int) -> bool:
+        if not self.enabled or self.steps_per_week <= 0:
+            return False
+        pos = int(step_index) % int(self.steps_per_week)
+        return self.offset <= pos < self.offset + self.duration
+
+
+def paradox_damper_policy(
+    base_damper: float,
+    *,
+    storm_active: bool,
+    stability: float,
+    thrash: float | None = None,
+    target: float = 0.92,
+    weekly_drill: bool = False,
+) -> float:
+    """
+    Paradox owns the live damper dial.
+    DNA base = long-term personality; this = weather jacket (fast).
+    """
+    d = float(base_damper)
+    thr = 0.0 if thrash is None else float(max(0.0, thrash))
+    gap = float(target) - float(stability)
+
+    if storm_active or weekly_drill:
+        # Raise toward ceiling — hold the line under extreme / drill
+        d += 0.10 + 0.08 * min(1.0, thr / 1.5)
+        if gap > 0.04:
+            d += 0.05
+        if weekly_drill and not storm_active:
+            d += 0.04  # practice upshift even if env only moderate
+    else:
+        # Calm / bright: ease toward competent mid — anti-PTSD
+        if stability >= target - 0.03:
+            d -= 0.045
+        else:
+            d -= 0.02
+        if thr < 0.35:
+            d -= 0.015
+
+    return float(max(DAMPER_LIVE_FLOOR, min(DAMPER_LIVE_CEILING, d)))
+
+
+def apply_paradox_damper_to_swarm(
+    agents: list,
+    *,
+    base_damper: float,
+    storm_active: bool,
+    stability: float,
+    thrash: float | None = None,
+    target: float = 0.92,
+    weekly_drill: bool = False,
+) -> float:
+    """Install live damper into swarm instincts (one-way; swarm does not know source)."""
+    eff = paradox_damper_policy(
+        base_damper,
+        storm_active=storm_active,
+        stability=stability,
+        thrash=thrash,
+        target=target,
+        weekly_drill=weekly_drill,
+    )
+    for a in agents:
+        if not hasattr(a, "instinct") or a.instinct is None:
+            continue
+        # Prefer live policy (Paradox hand on dial) over stale blend
+        a.instinct["damper_bias"] = float(eff)
+    return eff
+
 
 @dataclass
 class StormLatch:
@@ -235,6 +329,8 @@ def plan_actions(
     kernel_I: float | None = None,
     countermeasure_invest: float | None = None,
     storm_latch: StormLatch | None = None,
+    force_storm: bool = False,
+    force_storm_reason: str = "",
 ) -> ActionPlan:
     """
     Policy used by portfolio + real-world demos.
@@ -242,6 +338,7 @@ def plan_actions(
     storm_mode default **auto**: storm pack is in Paradox's arsenal and
     engages on trigger points without operator intervention.
     Pass storm_latch= to keep hysteresis across steps (HealthEngine does this).
+    force_storm: weekly arsenal drill / Paradox scheduled exercise.
     """
     stab = float(stability)
     sr = float(success_rate) if success_rate is not None else None
@@ -362,22 +459,26 @@ def plan_actions(
             d_env=d_env,
             kernel_I=kernel_I,
         )
+        if force_storm:
+            want_enter = True
+            want_exit = False
+            reason = force_storm_reason or WEEKLY_DRILL_REASON
         if storm_mode == "on":
             storm_active = True
             storm_reason = "mode_on_force"
         elif storm_latch is not None:
             storm_active = storm_latch.update(
                 want_enter=want_enter,
-                want_exit=want_exit,
+                want_exit=want_exit and not force_storm,
                 reason_enter=reason,
             )
             storm_reason = storm_latch.last_reason
+            if force_storm and storm_active:
+                storm_reason = force_storm_reason or WEEKLY_DRILL_REASON
         else:
-            # stateless auto (no latch): enter only; exit when want_exit
-            storm_active = want_enter or (not want_exit and want_enter)
-            if want_enter:
+            if want_enter or force_storm:
                 storm_active = True
-                storm_reason = reason
+                storm_reason = reason if want_enter else (force_storm_reason or WEEKLY_DRILL_REASON)
             else:
                 storm_active = False
                 storm_reason = "auto_clear" if want_exit else "auto_idle"

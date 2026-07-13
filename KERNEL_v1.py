@@ -95,6 +95,12 @@ PROMOTED_DNA: dict[str, Any] = {
         "bright_path": (
             "success and recovery scars build competent optimism; trauma must not monopolize intuition"
         ),
+        "damper_policy": (
+            "Paradox owns live damper dial: up under storm/drill, ease in calm (band ~1.45–2.28)"
+        ),
+        "weekly_drill": (
+            "once per week Paradox engages storm pack for arsenal practice (weekly_arsenal_drill)"
+        ),
     },
 }
 

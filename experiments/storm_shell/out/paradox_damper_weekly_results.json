@@ -1,0 +1,36 @@
+{
+  "proto": "paradox_damper_weekly_v1",
+  "steps": 336,
+  "weekly_drill": {
+    "offset": 48,
+    "duration": 16,
+    "reason": "weekly_arsenal_drill"
+  },
+  "summary": {
+    "A_default": {
+      "drill_steps": 32.0,
+      "storm_during_drill": 1.0,
+      "damper_drill": 2.2733333333333334,
+      "damper_calm": 2.100429553264605,
+      "storm_frac": 0.13392857142857142,
+      "stab_mean": 0.9446799453665994
+    },
+    "B_no_drill": {
+      "drill_steps": 0.0,
+      "storm_during_drill": 0.0,
+      "damper_drill": 0.0,
+      "damper_calm": 2.100382262996942,
+      "storm_frac": 0.026785714285714284,
+      "stab_mean": 0.9438074644504099
+    },
+    "C_storm_off": {
+      "drill_steps": 0.0,
+      "storm_during_drill": 0.0,
+      "damper_drill": 0.0,
+      "damper_calm": 2.1006845238095244,
+      "storm_frac": 0.0,
+      "stab_mean": 0.9434115694931734
+    }
+  },
+  "pass": true
+}
