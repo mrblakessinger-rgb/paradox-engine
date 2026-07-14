@@ -105,6 +105,18 @@ PROMOTED_DNA: dict[str, Any] = {
             "forecast vs actual + counterfactual best practice feed intuition (capped); "
             "swarm never stores the credit ledger"
         ),
+        "recovery_drive": (
+            "after storm/load drop, desire to climb: revive harder, open traffic, ease damper; "
+            "env-led shell release so goodput cannot trap the latch; credit grows this desire"
+        ),
+        "horizon_scout": (
+            "look upstream of core load for surge signs: env/thrash/budget slopes, empty tools, "
+            "queue pressure, latency creep, arrival ramp; pre-arm storm pack before peak hits"
+        ),
+        "resource_sandbox": (
+            "host CPU/GPU/RAM control is a separate sandbox: Paradox emits abstract intents "
+            "(throttle/shed/defer); driver maps them — never OS privilege inside KERNEL DNA"
+        ),
     },
 }
 

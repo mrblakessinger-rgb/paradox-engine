@@ -1,0 +1,40 @@
+{
+  "demo": "quota_hell_stress",
+  "target_locked": 0.92,
+  "n_workers": 20,
+  "steps": 48,
+  "seed": 42,
+  "baseline": {
+    "mean": 0.10932692307692309,
+    "late": 0.12888888888888891,
+    "p10": 0.054,
+    "min_roll": 0.0,
+    "final_alive": 0,
+    "mean_alive": 1.6666666666666667,
+    "ok_total": 67,
+    "fail_total": 587,
+    "elapsed": 50.61504578590393
+  },
+  "engine": {
+    "mean": 0.19515080337690635,
+    "late": 0.42,
+    "p10": 0.08,
+    "min_roll": 0.04,
+    "final_alive": 20,
+    "mean_alive": 19.479166666666668,
+    "ok_total": 51,
+    "fail_total": 197,
+    "elapsed": 33.68165946006775,
+    "kernel_late": 0.9459738090267421,
+    "kernel_mean": 0.9219629707546259,
+    "kernel_min": 0.5945032430712475
+  },
+  "delta_mean": 0.08582388029998327,
+  "delta_late": 0.2911111111111111,
+  "checks": {
+    "success_lift": true,
+    "alive": true,
+    "kernel": true,
+    "overall": true
+  }
+}

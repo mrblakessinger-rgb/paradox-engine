@@ -341,8 +341,11 @@ class CreditEngine:
                 add("countermeasure_invest", min(md, 0.04 * w * 2.5))
                 # small damper only — shell does the heavy lifting
                 add("damper_bias", min(md * 0.5, 0.015 * w * 2))
+                # Look harder at leading indicators next time (horizon scout)
+                add("horizon_sensitivity", min(md, 0.05 * w * 2.2))
                 self.wisdom["credit_storm_early"] = (
-                    "when thrash/budget stress rises, arm storm pack earlier than reactive default"
+                    "when thrash/budget stress rises, arm storm pack earlier than reactive default; "
+                    "raise horizon sensitivity to pre-arm on leading signs"
                 )
                 report["wisdom_added"].append("credit_storm_early")
             elif action == "cool_harder":
@@ -356,12 +359,15 @@ class CreditEngine:
                 add("pairing_strength", min(md, 0.04 * w * 2.5))
                 add("floor_boost", min(0.025, 0.015 * w * 2.5))
                 add("damper_bias", -min(0.02, 0.012 * w * 2))  # allow re-entry
+                # Internal desire to climb after hurt — grows when revive wins CF
+                add("recovery_drive", min(md, 0.045 * w * 2.2))
                 self.wisdom["credit_revive"] = "in recover bands, revive more aggressively when budget allows"
                 report["wisdom_added"].append("credit_revive")
             elif action == "open_traffic":
                 add("explore_bias", min(0.03, 0.025 * w * 2))
                 add("repair_bias", min(md, 0.025 * w * 2))
                 add("damper_bias", -min(0.025, 0.02 * w * 2))
+                add("recovery_drive", min(md, 0.035 * w * 2.0))
                 self.wisdom["credit_open"] = "when calm+budget, reopen traffic; do not stay locked cool"
                 report["wisdom_added"].append("credit_open")
             elif action == "fail_closed_tools":
@@ -384,14 +390,28 @@ class CreditEngine:
         if regret_sum.get("revive_more", 0) > 0.10:
             add("repair_bias", min(md, 0.03))
             add("pairing_strength", min(md, 0.025))
+            add("recovery_drive", min(md, 0.04))
         if regret_sum.get("arm_storm_earlier", 0) > 0.20:
             add("countermeasure_invest", min(md, 0.025))
+            add("horizon_sensitivity", min(md, 0.04))
+            self.wisdom["horizon_scout"] = (
+                "look upstream for surge signs and pre-arm before peak; "
+                "credit raises sensitivity when late arming costs survival"
+            )
+            report["wisdom_added"].append("horizon_sensitivity↑")
+        # When open/revive both win often → internal desire to recover hardens
+        if counts.get("revive_more", 0) + counts.get("open_traffic", 0) >= max(3, int(0.18 * n)):
+            add("recovery_drive", min(md, 0.03))
+            self.wisdom["recovery_drive"] = (
+                "after storm/load drop, desire to climb: revive harder, open traffic, ease damper"
+            )
+            report["wisdom_added"].append("recovery_drive_desire")
 
         # apply with soft caps
         for k, d in deltas.items():
             if k == "target_coherence":
                 continue
-            old = float(self.intuition.get(k, 1.0))
+            old = float(self.intuition.get(k, 1.0 if k != "recovery_drive" else 1.15))
             new = float(np.clip(old + d, 0.05, 2.5))
             if k == "damper_bias":
                 new = min(new, DAMPER_SOFT)
@@ -402,6 +422,11 @@ class CreditEngine:
                 new = float(np.clip(new, EXPLORE_LO, EXPLORE_HI))
             if k == "predict_trust":
                 new = float(np.clip(new, 0.2, 0.95))
+            if k == "recovery_drive":
+                # Cap desire so open/revive climb stays surge-resilient, not thrash-runaway
+                new = float(np.clip(new, 0.8, 1.90))
+            if k == "horizon_sensitivity":
+                new = float(np.clip(new, 0.6, 1.7))
             self.intuition[k] = new
             report["intuition_deltas"][k] = {"from": old, "to": new, "delta": d}
 

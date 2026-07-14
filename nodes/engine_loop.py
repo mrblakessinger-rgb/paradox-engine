@@ -29,6 +29,7 @@ from .actuate import (  # noqa: E402
     apply_paradox_damper_to_swarm,
     plan_actions,
 )
+from .horizon_scout import HorizonScout  # noqa: E402
 from .ingest import to_interference  # noqa: E402
 from .paradox_credit import CreditEngine  # noqa: E402
 
@@ -52,10 +53,13 @@ class HealthEngine:
         steps_per_week: int = 168,
         credit_loop: bool = True,
         credit_lr: float = 1.0,
+        target: float | None = None,
     ):
         self.rng = np.random.default_rng(seed)
         self.agents = K.make_swarm(self.rng)
         self.paradox = K.Paradox(K.PROMOTED_DNA)
+        self.target = float(target if target is not None else K.TARGET_STABILITY)
+        self.paradox.intuition["target_coherence"] = self.target
         if not isinstance(self.paradox.wisdom, dict):
             self.paradox.wisdom = {}
         self.paradox.wisdom.setdefault(
@@ -84,12 +88,27 @@ class HealthEngine:
             "credit_loop",
             "forecast vs actual + counterfactual best practice feed intuition (capped)",
         )
+        self.paradox.wisdom.setdefault(
+            "recovery_drive",
+            "after storm release, internal desire to climb: revive harder, open traffic, ease damper",
+        )
+        self.paradox.wisdom.setdefault(
+            "horizon_scout",
+            "look upstream for surge signs (env/thrash/budget slopes, queue, latency, empty tools) "
+            "and pre-arm storm pack before peak hits core",
+        )
+        if "recovery_drive" not in self.paradox.intuition:
+            # Baseline internal desire to climb after storm — credit can grow it
+            self.paradox.intuition["recovery_drive"] = 1.25
+        if "horizon_sensitivity" not in self.paradox.intuition:
+            self.paradox.intuition["horizon_sensitivity"] = 1.0
         self.paradox.install_drivers(self.agents)
         self.ambient = 0.0
         self.last_stability = 0.88
         self.steps = 0
         self.storm_mode: StormMode = storm_mode
         self.storm_latch = StormLatch()
+        self.horizon = HorizonScout()
         self.weekly_drill = WeeklyStormDrill(
             steps_per_week=steps_per_week,
             enabled=weekly_drill,
@@ -106,6 +125,8 @@ class HealthEngine:
         self._last_damper = float(self.paradox.intuition.get("damper_bias", 2.0))
         self._last_goodput: float | None = None
         self._last_alive_frac: float | None = None
+        # last upstream sensors (from step_from_metrics kwargs)
+        self._upstream: dict[str, Any] = {}
 
     def step(
         self,
@@ -118,8 +139,13 @@ class HealthEngine:
         storm_mode: StormMode | None = None,
         budget_remaining: float | None = None,
         empty_tool_rate: float | None = None,
+        queue_pressure: float | None = None,
+        arrival_rate: float | None = None,
+        latency_p95: float | None = None,
+        latency_ref: float = 1.0,
+        upstream_error_rate: float | None = None,
     ) -> dict[str, Any]:
-        """One kernel cycle. Damper + storm/beacons + optional weekly drill."""
+        """One kernel cycle. Horizon scout → damper → storm/beacons + weekly drill."""
         I = float(np.clip(I, 0.4, 3.0))
         env = float(env_load) if env_load is not None else I
         thr = thrash
@@ -127,16 +153,41 @@ class HealthEngine:
 
         drill = self.weekly_drill.active(self.steps) and mode == "auto"
         base_d = float(self.paradox.intuition.get("damper_bias", 2.0))
+        rd = float(self.paradox.intuition.get("recovery_drive", 1.15))
+        sens = float(self.paradox.intuition.get("horizon_sensitivity", 1.0))
+        recovering = self.storm_latch.in_recovery
+
+        # --- Horizon: look upstream *before* planning ---
+        hz = self.horizon.observe(
+            env_load=float(env),
+            thrash=float(thr or 0.0),
+            budget_remaining=budget_remaining,
+            empty_tool_rate=float(empty_tool_rate or 0.0),
+            goodput=goodput if goodput is not None else self._last_goodput,
+            success_rate=success_rate,
+            queue_pressure=queue_pressure if queue_pressure is not None else self._upstream.get("queue_pressure"),
+            arrival_rate=arrival_rate if arrival_rate is not None else self._upstream.get("arrival_rate"),
+            latency_p95=latency_p95 if latency_p95 is not None else self._upstream.get("latency_p95"),
+            latency_ref=float(latency_ref if latency_p95 is not None else self._upstream.get("latency_ref", 1.0)),
+            upstream_error_rate=(
+                upstream_error_rate
+                if upstream_error_rate is not None
+                else self._upstream.get("upstream_error_rate")
+            ),
+            sensitivity=sens,
+        )
 
         # Paradox hand on damper *before* swarm acts (uses last storm state + drill)
         self._last_damper = apply_paradox_damper_to_swarm(
             self.agents,
             base_damper=base_d,
-            storm_active=self._last_storm_active or drill,
+            storm_active=self._last_storm_active or drill or hz.pre_arm,
             stability=self.last_stability,
             thrash=thr,
-            target=K.TARGET_STABILITY,
+            target=self.target,
             weekly_drill=drill,
+            recovery=recovering and not (self._last_storm_active or drill),
+            recovery_drive=rd,
         )
 
         for a in self.agents:
@@ -144,16 +195,21 @@ class HealthEngine:
         self.ambient = 0.03 * float(np.mean([a.flux for a in self.agents]))
         self.paradox.hive_pair_churn(self.agents, self.rng)
         self.paradox.install_drivers(self.agents)
+        # keep target desire on swarm after install
+        for a in self.agents:
+            a.instinct["target_coherence"] = self.target
 
         # Re-assert live damper after install (install would blend DNA back)
         self._last_damper = apply_paradox_damper_to_swarm(
             self.agents,
             base_damper=base_d,
-            storm_active=self._last_storm_active or drill,
+            storm_active=self._last_storm_active or drill or hz.pre_arm,
             stability=self.last_stability,
             thrash=thr,
-            target=K.TARGET_STABILITY,
+            target=self.target,
             weekly_drill=drill,
+            recovery=self.storm_latch.in_recovery and not (self._last_storm_active or drill),
+            recovery_drive=rd,
         )
 
         stab = K.stability(self.agents)
@@ -182,6 +238,12 @@ class HealthEngine:
             storm_latch=self.storm_latch if mode == "auto" else None,
             force_storm=drill,
             force_storm_reason=self.weekly_drill.reason if drill else "",
+            target=self.target,
+            recovery_drive=rd,
+            surge_risk=hz.risk,
+            horizon_pre_arm=hz.pre_arm,
+            horizon_imminent=hz.imminent,
+            horizon_reasons="+".join(hz.reasons[:4]),
         )
 
         # Credit loop: open cycle with forecast *before* we only have prior goodput
@@ -201,15 +263,17 @@ class HealthEngine:
             )
 
         # Update damper again if latch just flipped this step
-        if plan.storm_active != self._last_storm_active or drill:
+        if plan.storm_active != self._last_storm_active or drill or plan.recovery_active or plan.pre_arm:
             self._last_damper = apply_paradox_damper_to_swarm(
                 self.agents,
                 base_damper=base_d,
-                storm_active=plan.storm_active,
+                storm_active=plan.storm_active or plan.pre_arm,
                 stability=stab,
                 thrash=thr,
-                target=K.TARGET_STABILITY,
+                target=self.target,
                 weekly_drill=drill,
+                recovery=bool(plan.recovery_active),
+                recovery_drive=rd,
             )
 
         n_pulled = apply_beacons_to_swarm(self.agents, plan, ceiling=K.CEILING_SOFT)
@@ -224,7 +288,7 @@ class HealthEngine:
             "I": I,
             "stability": stab,
             "plan": plan,
-            "target": K.TARGET_STABILITY,
+            "target": self.target,
             "storm_mode": mode,
             "storm_active": plan.storm_active,
             "storm_reason": plan.storm_reason,
@@ -235,6 +299,11 @@ class HealthEngine:
             "damper_base": base_d,
             "weekly_drill": drill,
             "credit_enabled": self.credit_loop,
+            "recovery_active": plan.recovery_active,
+            "recovery_drive": rd,
+            "surge_risk": hz.risk,
+            "pre_arm": plan.pre_arm,
+            "horizon": hz.as_dict(),
         }
 
     def observe_actual(
@@ -290,15 +359,34 @@ class HealthEngine:
         storm_mode: StormMode | None = None,
         budget_remaining: float | None = None,
         empty_tool_rate: float = 0.0,
+        queue_pressure: float | None = None,
+        arrival_rate: float | None = None,
+        latency_p95: float | None = None,
+        latency_ref: float = 1.0,
+        upstream_error_rate: float | None = None,
         **ingest_kw: Any,
     ) -> dict[str, Any]:
+        # Stash upstream for horizon (and pass queue/latency into ingest when present)
+        self._upstream = {
+            "queue_pressure": queue_pressure,
+            "arrival_rate": arrival_rate,
+            "latency_p95": latency_p95,
+            "latency_ref": latency_ref,
+            "upstream_error_rate": upstream_error_rate,
+        }
+        ingest_extra = dict(ingest_kw)
+        if queue_pressure is not None and "queue_pressure" not in ingest_extra:
+            ingest_extra["queue_pressure"] = queue_pressure
+        if latency_p95 is not None and "latency_p95" not in ingest_extra:
+            ingest_extra["latency_p95"] = latency_p95
+            ingest_extra.setdefault("latency_ref", latency_ref)
         I = to_interference(
             success_rate=success_rate,
             env_load=env_load,
             thrash=thrash,
             budget_remaining=budget_remaining,
             empty_tool_rate=empty_tool_rate,
-            **ingest_kw,
+            **ingest_extra,
         )
         return self.step(
             I,
@@ -309,6 +397,11 @@ class HealthEngine:
             storm_mode=storm_mode,
             budget_remaining=budget_remaining,
             empty_tool_rate=empty_tool_rate,
+            queue_pressure=queue_pressure,
+            arrival_rate=arrival_rate,
+            latency_p95=latency_p95,
+            latency_ref=latency_ref,
+            upstream_error_rate=upstream_error_rate,
         )
 
 

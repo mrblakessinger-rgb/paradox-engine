@@ -1,0 +1,46 @@
+{
+  "archive_dir": "C:\\Users\\mrbla\\OneDrive - Butte-Glenn Community College District\\Desktop\\INFINITY ENGINE KERNAL 1\\real_world\\out\\archive_baseline_092",
+  "has_base_tough": true,
+  "has_new_tough": true,
+  "has_base_hell": true,
+  "has_new_hell": true,
+  "has_credit_095": true,
+  "hell_incarnate_deltas": {
+    "A_base_noshell": {
+      "late_base": 0.8721207290179334,
+      "late_new": 0.8721207290179334,
+      "delta_late": 0.0,
+      "hold_base": 0.75,
+      "hold_new": 0.75,
+      "hell_min_base": 0.7393399514904156,
+      "hell_min_new": 0.7393399514904156
+    },
+    "B_shell_promoted": {
+      "late_base": 0.9494025629488978,
+      "late_new": 0.9494025629488978,
+      "delta_late": 0.0,
+      "hold_base": 1.0,
+      "hold_new": 1.0,
+      "hell_min_base": 0.9292575487248829,
+      "hell_min_new": 0.9292575487248829
+    },
+    "C_shell_toughened": {
+      "late_base": 0.9498381720054899,
+      "late_new": 0.949739410455079,
+      "delta_late": -9.87615504108863e-05,
+      "hold_base": 1.0,
+      "hold_new": 1.0,
+      "hell_min_base": 0.9313572840058504,
+      "hell_min_new": 0.9316386383882129
+    },
+    "D_toughened_noshell": {
+      "late_base": 0.8825111825064793,
+      "late_new": 0.8849326470935035,
+      "delta_late": 0.0024214645870241913,
+      "hold_base": 0.75,
+      "hold_new": 0.75,
+      "hell_min_base": 0.7562756144722315,
+      "hell_min_new": 0.7606526251261005
+    }
+  }
+}

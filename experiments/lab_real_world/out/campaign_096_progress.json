@@ -1,0 +1,72 @@
+{
+  "phases": [
+    {
+      "name": "battery_1",
+      "final_pass": false,
+      "e5_stab": 0.9596256137712682,
+      "e5_alive": 18.2,
+      "e5_gp": 0.19149103645279583,
+      "gap": -0.0003743862287316713,
+      "pre_arm": 1.0,
+      "throttle": 0.3377984417562514
+    },
+    {
+      "phase": "easy_confidence",
+      "target": 0.96,
+      "stab_late": 0.9634699388943639,
+      "alive_end": 17.0,
+      "gp_mean": 0.25763609484173366,
+      "pass": false,
+      "seeds": [
+        {
+          "stab_late": 0.9634398114845794,
+          "alive_end": 11.0,
+          "gp_mean": 0.2638727441540672
+        },
+        {
+          "stab_late": 0.964422986371004,
+          "alive_end": 16.0,
+          "gp_mean": 0.25707056465975164
+        },
+        {
+          "stab_late": 0.9625470188275084,
+          "alive_end": 24.0,
+          "gp_mean": 0.2519649757113821
+        }
+      ]
+    },
+    {
+      "name": "hell_incarnate",
+      "C_late": 0.949739410455079,
+      "C_hold": 1.0,
+      "C_hell_min": 0.9316386383882129,
+      "A_late": 0.8721207290179334
+    },
+    {
+      "name": "battery_2",
+      "final_pass": true,
+      "e5_stab": 0.9596256137712682,
+      "e5_alive": 18.2,
+      "e5_gp": 0.19149103645279583,
+      "gap": -0.0003743862287316713,
+      "pre_arm": 1.0,
+      "throttle": 0.3377984417562514,
+      "assessments": [
+        "Late stability meets/near desire 0.96.",
+        "Surprise surge: storm arm excellent.",
+        "Horizon pre-arm lead 100%.",
+        "Post-surge climb ok (alive\u224819.0).",
+        "Resource throttle engaged (mean=0.34).",
+        "BATTERY SOFT \u2014 near band, review gaps."
+      ]
+    }
+  ],
+  "campaign_green": true,
+  "exit_codes": [
+    0,
+    0,
+    0
+  ],
+  "recommendation": "Soft Pack rebuild + GitHub push OK",
+  "final_pass_recomputed": true
+}

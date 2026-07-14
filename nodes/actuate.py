@@ -83,24 +83,34 @@ def paradox_damper_policy(
     thrash: float | None = None,
     target: float = 0.92,
     weekly_drill: bool = False,
+    recovery: bool = False,
+    recovery_drive: float = 1.0,
 ) -> float:
     """
     Paradox owns the live damper dial.
-    DNA base = long-term personality; this = weather jacket (fast).
+    recovery=True: drop damper faster — internal desire to climb back after surge.
     """
     d = float(base_damper)
     thr = 0.0 if thrash is None else float(max(0.0, thrash))
     gap = float(target) - float(stability)
+    rd = float(max(0.5, min(2.0, recovery_drive)))
 
     if storm_active or weekly_drill:
-        # Raise toward ceiling — hold the line under extreme / drill
         d += 0.10 + 0.08 * min(1.0, thr / 1.5)
         if gap > 0.04:
             d += 0.05
         if weekly_drill and not storm_active:
-            d += 0.04  # practice upshift even if env only moderate
+            d += 0.04
+    elif recovery:
+        # Desire to recover: ease viscosity quickly so revive/open can work
+        d -= 0.09 * rd
+        if gap > 0.02:
+            d -= 0.04 * rd
+        if thr < 0.55:
+            d -= 0.03 * rd
+        if rd >= 1.4:
+            d -= 0.02  # extra eagerness at high desire
     else:
-        # Calm / bright: ease toward competent mid — anti-PTSD
         if stability >= target - 0.03:
             d -= 0.045
         else:
@@ -120,6 +130,8 @@ def apply_paradox_damper_to_swarm(
     thrash: float | None = None,
     target: float = 0.92,
     weekly_drill: bool = False,
+    recovery: bool = False,
+    recovery_drive: float = 1.0,
 ) -> float:
     """Install live damper into swarm instincts (one-way; swarm does not know source)."""
     eff = paradox_damper_policy(
@@ -129,25 +141,36 @@ def apply_paradox_damper_to_swarm(
         thrash=thrash,
         target=target,
         weekly_drill=weekly_drill,
+        recovery=recovery,
+        recovery_drive=recovery_drive,
     )
     for a in agents:
         if not hasattr(a, "instinct") or a.instinct is None:
             continue
-        # Prefer live policy (Paradox hand on dial) over stale blend
         a.instinct["damper_bias"] = float(eff)
     return eff
+
+
+# Post-storm recovery desire (internal drive to climb back fast)
+RECOVERY_HOLD_STEPS = 18  # steps of aggressive revive/open after storm releases
+RECOVERY_DRIVE_DEFAULT = 1.15
+# Env soft enough to treat as "post-surge climb" even if gp still low
+RECOVERY_ENV_CLEAR = 1.20
+RECOVERY_ENV_SOFT = 1.35  # residual shell + climb assist
 
 
 @dataclass
 class StormLatch:
     """
     Hysteresis so shell doesn't chatter on/off every step.
-    HealthEngine / caller keeps one instance across steps.
+    Tracks post-release recovery window (desire to climb back).
     """
 
     active: bool = False
     calm_streak: int = 0
     last_reason: str = ""
+    recovery_steps_left: int = 0  # >0 ⇒ recovery drive engaged
+    hold_steps: int = RECOVERY_HOLD_STEPS  # may scale with recovery_drive
 
     def update(
         self,
@@ -155,7 +178,9 @@ class StormLatch:
         want_enter: bool,
         want_exit: bool,
         reason_enter: str = "",
+        recovery_hold: int | None = None,
     ) -> bool:
+        hold = int(recovery_hold) if recovery_hold is not None else self.hold_steps
         if self.active:
             if want_exit:
                 self.calm_streak += 1
@@ -163,14 +188,33 @@ class StormLatch:
                     self.active = False
                     self.calm_streak = 0
                     self.last_reason = "release_calm"
+                    # Keep any pre-armed desire window; at least full hold after release
+                    self.recovery_steps_left = max(
+                        self.recovery_steps_left, max(RECOVERY_HOLD_STEPS, hold)
+                    )
             else:
                 self.calm_streak = 0
+            # While shell holds, do not burn recovery timer — it is for post-release climb
         else:
             if want_enter:
                 self.active = True
                 self.calm_streak = 0
                 self.last_reason = reason_enter or "enter"
+                # Preserve armed desire across brief re-entry; don't wipe climb urge
+                if self.recovery_steps_left > 0:
+                    self.recovery_steps_left = max(6, min(self.recovery_steps_left, hold))
+            elif self.recovery_steps_left > 0:
+                self.recovery_steps_left -= 1
         return self.active
+
+    @property
+    def in_recovery(self) -> bool:
+        return (not self.active) and self.recovery_steps_left > 0
+
+    def arm_recovery(self, steps: int | None = None) -> None:
+        """Desire window: call when load drops hard even if shell still releasing."""
+        n = int(steps) if steps is not None else RECOVERY_HOLD_STEPS
+        self.recovery_steps_left = max(self.recovery_steps_left, n)
 
 
 def evaluate_storm_triggers(
@@ -219,7 +263,8 @@ def evaluate_storm_triggers(
 
     want_enter = len(reasons) > 0
 
-    exit_ok = (
+    # Full calm exit (strict) — preferred when fleet already climbing
+    exit_strict = (
         env < STORM_ENV_EXIT
         and thr < STORM_THRASH_EXIT
         and (br is None or br >= STORM_BUDGET_EXIT)
@@ -228,6 +273,20 @@ def evaluate_storm_triggers(
         and empty < STORM_EMPTY_ENTER * 0.7
         and stability >= target - 0.06
     )
+    # Env-led soft exit: load clearly dropped after surge; do not wait forever
+    # on goodput (chicken-egg: shell holds → gp stuck → never release → no climb).
+    # Recovery desire then owns the climb. Thrash threshold soft when env is calm.
+    thr_exit_cap = 1.35 if env < 1.05 else 1.05  # very calm env → tolerate residual thrash
+    exit_env_clear = (
+        env < RECOVERY_ENV_CLEAR
+        and thr < thr_exit_cap
+        and (br is None or br >= 0.48)
+        and (gp is None or gp >= 0.12)
+        and (ki is None or ki < STORM_I_EXIT + 0.20)
+        and empty < STORM_EMPTY_ENTER * 1.05
+        and stability >= target - 0.16
+    )
+    exit_ok = bool(exit_strict or exit_env_clear)
     return want_enter, exit_ok, "+".join(reasons) if reasons else "none"
 
 
@@ -250,6 +309,11 @@ class ActionPlan:
     beacon_n: int = 0  # number of core attractors
     beacon_edge_frac: float = 0.0  # fraction of fleet treated as edge
     beacon_pull: float = 0.0  # 0..1 pull strength toward core
+    recovery_active: bool = False  # post-storm climb drive
+    # --- horizon scout (upstream / leading-indicator pre-arm) ---
+    pre_arm: bool = False
+    surge_risk: float = 0.0
+    horizon_reasons: str = ""
 
     def as_dict(self) -> dict:
         return {
@@ -267,6 +331,10 @@ class ActionPlan:
             "beacon_n": self.beacon_n,
             "beacon_edge_frac": self.beacon_edge_frac,
             "beacon_pull": self.beacon_pull,
+            "recovery_active": self.recovery_active,
+            "pre_arm": self.pre_arm,
+            "surge_risk": self.surge_risk,
+            "horizon_reasons": self.horizon_reasons,
             "felt_scale": self.felt_scale(),
         }
 
@@ -331,6 +399,11 @@ def plan_actions(
     storm_latch: StormLatch | None = None,
     force_storm: bool = False,
     force_storm_reason: str = "",
+    recovery_drive: float | None = None,
+    surge_risk: float | None = None,
+    horizon_pre_arm: bool = False,
+    horizon_imminent: bool = False,
+    horizon_reasons: str = "",
 ) -> ActionPlan:
     """
     Policy used by portfolio + real-world demos.
@@ -339,6 +412,8 @@ def plan_actions(
     engages on trigger points without operator intervention.
     Pass storm_latch= to keep hysteresis across steps (HealthEngine does this).
     force_storm: weekly arsenal drill / Paradox scheduled exercise.
+    recovery_drive: internal desire to climb after surge (default 1.0).
+    surge_risk / horizon_*: HorizonScout leading-indicator pre-arm (upstream look).
     """
     stab = float(stability)
     sr = float(success_rate) if success_rate is not None else None
@@ -347,6 +422,12 @@ def plan_actions(
     thr = float(thrash) if thrash is not None else None
     gap = target - stab
     cm = 0.98 if countermeasure_invest is None else float(countermeasure_invest)
+    rd = 1.0 if recovery_drive is None else float(max(0.5, min(2.2, recovery_drive)))
+    risk = 0.0 if surge_risk is None else float(max(0.0, min(1.0, surge_risk)))
+    hold_steps = int(round(RECOVERY_HOLD_STEPS * (0.85 + 0.25 * min(rd, 2.0))))
+    hold_steps = max(12, min(28, hold_steps))
+    if storm_latch is not None:
+        storm_latch.hold_steps = hold_steps
 
     # If caller only has kernel I, treat as env proxy for triggers
     if env is None and kernel_I is not None:
@@ -422,6 +503,8 @@ def plan_actions(
         if note in ("hold", "nudge", "cool"):
             note = "climb"
 
+    recovery_active = False
+
     if budget_remaining is not None:
         br = float(max(0.0, min(1.0, budget_remaining)))
         if br < 0.08:
@@ -459,6 +542,21 @@ def plan_actions(
             d_env=d_env,
             kernel_I=kernel_I,
         )
+        # Horizon scout: enter *before* peak if leading indicators say surge is coming
+        horizon_enter = False
+        if horizon_imminent or (horizon_pre_arm and risk >= 0.48):
+            # Only pre-arm when not already deep calm false-positive: need some heat
+            mild_heat = env_f >= 1.10 or thr_f >= 0.30 or risk >= 0.55
+            if mild_heat and not want_enter:
+                want_enter = True
+                horizon_enter = True
+                hr = horizon_reasons or "horizon"
+                reason = f"horizon_pre_arm:{hr}" if not horizon_imminent else f"horizon_imminent:{hr}"
+            elif mild_heat and want_enter and horizon_pre_arm:
+                # Tag existing enter with horizon (credit can learn "armed early")
+                horizon_enter = True
+                if "horizon" not in reason:
+                    reason = f"{reason}+horizon"
         if force_storm:
             want_enter = True
             want_exit = False
@@ -471,10 +569,13 @@ def plan_actions(
                 want_enter=want_enter,
                 want_exit=want_exit and not force_storm,
                 reason_enter=reason,
+                recovery_hold=hold_steps,
             )
             storm_reason = storm_latch.last_reason
             if force_storm and storm_active:
                 storm_reason = force_storm_reason or WEEKLY_DRILL_REASON
+            elif storm_active and horizon_enter and "horizon" in reason:
+                storm_reason = reason
         else:
             if want_enter or force_storm:
                 storm_active = True
@@ -484,16 +585,20 @@ def plan_actions(
                 storm_reason = "auto_clear" if want_exit else "auto_idle"
 
         if storm_active:
+            # Horizon pre-arm: slightly softer shell until full peak arrives
+            env_for_shell = max(env_f, thr_f * 0.5 + 1.0)
+            if horizon_enter and env_f < 1.85:
+                env_for_shell = max(env_for_shell, 1.75)  # engage shell early but not max cut
             storm_scale = _storm_shell_physics(
-                env_load=max(env_f, thr_f * 0.5 + 1.0),
+                env_load=env_for_shell,
                 thrash=thr_f,
                 stability=stab,
                 target=target,
-                d_env=d_env_f,
+                d_env=max(d_env_f, 0.15 if horizon_enter else 0.0),
                 countermeasure=cm,
             )
             cool = True
-            if open_traffic and env_f >= 2.0:
+            if open_traffic and env_f >= 1.85:
                 open_traffic = False
                 if conc_delta > 0:
                     conc_delta = 0
@@ -507,12 +612,94 @@ def plan_actions(
             beacon_pull = float(
                 min(0.22, 0.10 + 0.14 * shell_depth + 0.03 * min(1.0, thr_f / 1.5))
             )
-            if note in ("hold", "nudge", "restore", "climb", "nudge_open", "restore_open"):
+            if horizon_enter and "horizon" in (storm_reason or reason):
+                if note in ("hold", "nudge", "restore", "climb", "nudge_open", "restore_open"):
+                    note = "horizon_pre_arm+beacons"
+                elif "horizon" not in note:
+                    note = f"{note}+horizon"
+            elif note in ("hold", "nudge", "restore", "climb", "nudge_open", "restore_open"):
                 note = "storm_auto+beacons"
             elif "+storm" not in note:
                 note = f"{note}+storm+beacons"
             else:
                 note = f"{note}+beacons"
+        elif risk >= 0.35 and not deep_hurt:
+            # Watch band: cool slightly without full shell (early posture)
+            cool = True
+            if note in ("hold", "nudge", "restore_open", "nudge_open", "climb"):
+                note = "horizon_watch"
+            open_traffic = False if thr_f >= 0.4 else open_traffic
+
+    # --- Recovery desire: climb back fast after surge / env drop ---
+    # Internal desire (rd) scales revive/open/concurrency; latch tracks window.
+    env_falling = d_env is not None and float(d_env) < -0.08
+    env_soft = env is not None and float(env) < RECOVERY_ENV_SOFT
+    env_clear = env is not None and float(env) < RECOVERY_ENV_CLEAR
+    # Soft load tolerates higher residual thrash; peak thrash still blocks residual climb
+    thr_f = 0.0 if thr is None else float(thr)
+    thr_ok_soft = thr is None or thr_f < (1.25 if env_clear else 0.90)
+
+    # Arm recovery window only on real load cliffs / clear env after stress
+    # (not every mild soft hour — that over-climbs mid-week and kills end-alive).
+    if storm_latch is not None and thr_ok_soft:
+        if env_falling and d_env is not None and float(d_env) < -0.25:
+            storm_latch.arm_recovery(hold_steps)
+        elif env_clear and (storm_active or env_falling):
+            storm_latch.arm_recovery(hold_steps)
+
+    armed = bool(storm_latch is not None and storm_latch.recovery_steps_left > 0)
+    # True post-release climb
+    latch_recovery = bool(storm_latch is not None and storm_latch.in_recovery)
+    # Residual shell climb only while desire window is armed (scoped)
+    residual_shell_climb = bool(storm_active and env_soft and thr_ok_soft and armed)
+    hard_storm = bool(storm_active and env is not None and float(env) >= RECOVERY_ENV_SOFT + 0.15)
+
+    if not hard_storm and (
+        latch_recovery
+        or residual_shell_climb
+        or (env_falling and env_soft and thr_ok_soft)
+        or (not storm_active and gap > 0.03 and calm_env and not deep_hurt and armed)
+    ):
+        if latch_recovery or residual_shell_climb or env_falling or (
+            armed and gap > 0.05 and (gp is None or gp < 0.45)
+        ):
+            recovery_active = True
+            # Desire band: revive scales with recovery_drive (capped — over-revive → thrash massacre)
+            bonus = 1 + int(rd >= 1.25) + int(rd >= 1.80)
+            revive_k = max(revive_k, min(5, 2 + bonus))
+            # Already climbing hard / load rising again → pace (preserve end-alive)
+            load_rising = d_env is not None and float(d_env) > 0.12
+            climbing_ok = (gp is not None and gp >= 0.22) and (
+                success_rate is None or float(success_rate) >= 0.42
+            )
+            if load_rising or climbing_ok:
+                revive_k = min(revive_k, 2 if load_rising else 3)
+            if env is None or env < 2.05:
+                if not storm_active or env_clear or (env_soft and armed):
+                    # Always cool while climbing; only open when thrash is controlled
+                    cool = True if thr_f >= 0.25 or load_rising else cool
+                    if thr_f < 0.55 and not load_rising:
+                        open_traffic = True
+                        conc_delta = max(conc_delta, 1 + int(rd >= 1.40))
+                    else:
+                        # climb via revive+cool first; open after thrash settles
+                        open_traffic = False
+                        conc_delta = min(conc_delta, 0)
+            if budget_remaining is None or float(budget_remaining) >= 0.08:
+                if note in (
+                    "hold",
+                    "nudge",
+                    "cool",
+                    "restore",
+                    "climb",
+                    "nudge_open",
+                    "restore_open",
+                    "protect",
+                    "storm_auto+beacons",
+                ):
+                    note = "recovery_drive"
+                elif "recovery" not in note:
+                    note = f"{note}+recovery"
 
     return ActionPlan(
         shield_scale=float(shield),
@@ -529,6 +716,10 @@ def plan_actions(
         beacon_n=int(beacon_n),
         beacon_edge_frac=float(beacon_edge_frac),
         beacon_pull=float(beacon_pull),
+        recovery_active=bool(recovery_active),
+        pre_arm=bool(horizon_pre_arm or horizon_imminent or risk >= 0.55),
+        surge_risk=float(risk),
+        horizon_reasons=str(horizon_reasons or ""),
     )
 
 
