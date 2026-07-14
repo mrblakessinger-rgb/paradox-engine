@@ -40,8 +40,8 @@ Never shorten on the **first** mention of the product.
 | We mean | Buyer hears |
 |---------|-------------|
 | Safety in the carnage | Fleet doesn’t have to live in the thrash |
-| Not unbreakable | Storms still exist |
-| Your system won’t break it | Health layer holds under load |
+| Nothing is unbreakable... | Storms still exist — no invincibility claim |
+| But your system can't break this | Health layer holds under load |
 
 **Not claiming:** invincible, crash-proof, 99% prediction, lab mesh I=14 in the zip.
 
@@ -52,7 +52,7 @@ Never shorten on the **first** mention of the product.
 | Use | Line |
 |-----|------|
 | **Hero / poster (#5)** | *Chaos can hit it. Chaos can’t own it.* |
-| **Honest pair (#1)** | *Not unbreakable — but your system won’t break it.* |
+| **Honest pair (#1)** | *Nothing is unbreakable... But your system can't break this.* |
 | **Quiet metaphor** | *The quiet in the storm.* |
 | **One breath** | *Safety in the carnage.* |
 | **Long** | *Paradox Engine — Eye of the Storm: calm health control when multi-agent fleets thrash under load.* |
@@ -70,5 +70,5 @@ Paradox Engine — Eye of the Storm
 
 **Subtitle:**
 ```
-Chaos can hit it. Chaos can't own it. Not unbreakable — but your system won't break it. Health control for multi-agent fleets under load.
+Chaos can hit it. Chaos can't own it. Nothing is unbreakable... But your system can't break this. Health control for multi-agent fleets under load.
 ```

@@ -19,7 +19,7 @@ Paradox Engine — Eye of the Storm
 ## Subtitle
 
 ```
-Chaos can hit it. Chaos can't own it. Not unbreakable — but your system won't break it. Measured fleet health when agents, queues, and APIs thrash.
+Chaos can hit it. Chaos can't own it. Nothing is unbreakable... But your system can't break this. Measured fleet health when agents, queues, and APIs thrash.
 ```
 
 ## Full description (paste)
@@ -28,7 +28,7 @@ Chaos can hit it. Chaos can't own it. Not unbreakable — but your system won't 
 # Paradox Engine — Eye of the Storm
 
 **Chaos can hit it. Chaos can’t own it.**  
-**Not unbreakable — but your system won’t break it.**
+**Nothing is unbreakable... But your system can't break this.**
 
 A frozen **fleet health controller** for multi-agent systems, worker queues, and API clients under load — with **measured** baseline-vs-engine lifts you re-run yourself.
 
@@ -154,7 +154,7 @@ Not a free vertical architecture tour.
 |-------|------|
 | Buy button | **Buy Eye of the Storm — $149** |
 | Hero | *Chaos can hit it. Chaos can’t own it.* |
-| Trust | *Not unbreakable — but your system won’t break it.* |
+| Trust | *Nothing is unbreakable... But your system can't break this.* |
 | Proof | *+0.22 / +0.23 / +0.24 — fleets, queues, API thrash* |
 | Free | *Free: re-run GitHub proofs · time-boxed thrash note* |
 

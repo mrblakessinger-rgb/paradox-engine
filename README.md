@@ -1,7 +1,7 @@
 # Paradox Engine — Eye of the Storm
 
 **Chaos can hit it. Chaos can’t own it.**  
-**Not unbreakable — but your system won’t break it.**
+**Nothing is unbreakable... But your system can't break this.**
 
 Self-stabilizing **health layer** for multi-agent fleets, worker queues, and API clients under load storms.
 

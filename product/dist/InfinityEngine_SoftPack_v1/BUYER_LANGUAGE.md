@@ -13,7 +13,7 @@
 | Soft Pack (old name) | “Vague” | **Eye of the Storm** — quiet in the storm |
 | Interference 0.4–3.0 | “Jargon” | “Under random load spikes” |
 | Soft ceiling 0.97 | “Niche theory” | “Doesn’t lock at perfect 1.0 and go blind” |
-| Unbreakable / crash-proof | “Liar” | “Not unbreakable — but your system won’t break it” |
+| Unbreakable / crash-proof | “Liar” | “Nothing is unbreakable... But your system can't break this” |
 
 **Buyers buy performance. Performance is the product surface. Internals stay yours.**
 
@@ -22,7 +22,7 @@
 | Feel | Line |
 |------|------|
 | **Hero (pop)** | *Chaos can hit it. Chaos can’t own it.* |
-| **Honest (trust)** | *Not unbreakable — but your system won’t break it.* |
+| **Honest (trust)** | *Nothing is unbreakable... But your system can't break this.* |
 | Eye of the hurricane | *The quiet in the storm.* |
 | Safety in carnage | *Safety in the carnage.* |
 
@@ -31,7 +31,7 @@ Don’t over-explain the hurricane. **Hero → honest → numbers.**
 ## Pitch layers (use top-down)
 
 1. **Hero:** *Chaos can hit it. Chaos can’t own it.*  
-2. **Honest:** *Not unbreakable — but your system won’t break it.*  
+2. **Honest:** *Nothing is unbreakable... But your system can't break this.*  
 3. **One sentence:** *Paradox Engine — Eye of the Storm keeps multi-agent systems near a target health band under storms — without babysitting.*  
 4. **Proof line:** *+0.22 / +0.23 / +0.24 on fleets, queues, and API thrash.*  
 5. **Only if they ask how:** *Ingest metrics → health step → actuate. Kernel internals stay sealed.*
