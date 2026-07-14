@@ -10,6 +10,10 @@ A **fleet health controller** — holds a target band under thrash without locki
 
 **Product (zip + support):** [Eye of the Storm — $149 on Gumroad](https://blakesinger.gumroad.com/l/wcorn)
 
+**Free sample (3–5h thrash note):** share success % / retries / 429s or a short thrash story → one-pager levers. No pitch deck. Message via Gumroad or open an issue titled `sample request`.
+
+**Not claimed here:** invincible systems · guaranteed 95–96% SLA · memory-corruption CVE theater · trading alpha · lab mesh lore.
+
 ---
 
 ## Problems it actually measures against
