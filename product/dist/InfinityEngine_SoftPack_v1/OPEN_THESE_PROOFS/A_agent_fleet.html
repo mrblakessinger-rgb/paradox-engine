@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"/><title>Proof A — Agent Fleet</title>
+<style>
+body{margin:0;padding:28px;background:#0b0f14;color:#e8eef7;font-family:Segoe UI,sans-serif;max-width:900px}
+h1{color:#fff} .ok{color:#5dffb0} .bad{color:#ff6b8a}
+.card{background:#121a24;border:1px solid #243044;border-radius:12px;padding:16px;margin:14px 0}
+img{max-width:100%;border-radius:8px}
+table{border-collapse:collapse;width:100%} td,th{padding:8px;border-bottom:1px solid #243044;text-align:left}
+</style></head><body>
+<h1>Proof A — Multi-agent tool fleet</h1>
+<p><b>Problem:</b> 20 agents call flaky tools. Storms and jumps raise failure rate.
+Cascades kill agents. Without a health layer, the fleet thrashes.</p>
+<p><b>Approach:</b> Paradox Engine KERNEL_v1 as health controller.
+Ingest (failures→I) → kernel hive step → actuate (quarantine worst / revive).</p>
+
+<div class="card">
+<h2>Results</h2>
+<table>
+<tr><th></th><th>Baseline</th><th>With Engine</th><th>Δ</th></tr>
+<tr><td>Mean success</td><td>0.474</td><td class="ok">0.695</td>
+<td>+0.221</td></tr>
+<tr><td>Late success</td><td>0.485</td><td class="ok">0.686</td>
+<td>+0.201</td></tr>
+<tr><td>p10 (floor)</td><td>0.172</td><td class="ok">0.525</td>
+<td>+0.353</td></tr>
+<tr><td>Kernel late stab</td><td>—</td><td>0.951</td><td>target 0.92</td></tr>
+</table>
+<p>Verdict: <b class="ok">ENGINE HELPS</b></p>
+<img src="A_agent_fleet_chart.png" alt="comparison"/>
+</div>
+
+<div class="card">
+<h2>What this proves for the portfolio</h2>
+<ul>
+<li>Kernel applies outside pure sandbox swarm math.</li>
+<li>Open-source-shaped problem: multi-agent tool failures + storms/jumps.</li>
+<li>Path to specialized nodes: ingest + actuate are already sketched in code.</li>
+</ul>
+</div>
+</body></html>

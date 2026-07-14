@@ -1,0 +1,31 @@
+Infinity Engine Soft Pack — Personal License (v1)
+================================================
+
+Copyright (c) 2026 Infinity Engine author. All rights reserved.
+
+1. GRANT
+   You may use this Soft Pack on machines you control for personal or
+   internal evaluation and production use by a single licensee.
+
+2. NO REDISTRIBUTION
+   You may not resell, republish, sublicense, or share the pack files
+   (including KERNEL_v1.py and nodes/) as your own product or in a
+   competing pack without written permission.
+
+3. NO TRAINING LAB
+   This pack is a frozen runtime + demos. It does not grant rights to
+   any separate training, exam, or DNA-evolution materials.
+
+4. NO WARRANTY
+   Provided "as is". Measured demo lifts are reproducible under the
+   included seeds/scripts; your production results will vary with
+   your system. Author is not liable for consequential damages.
+
+5. ATTRIBUTION
+   Optional but appreciated when you publish numbers derived from the
+   included proofs.
+
+6. COMMERCIAL REDISTRIBUTION / OEM
+   Contact the author for a separate license.
+
+Questions: install and run support only (see README).

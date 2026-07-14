@@ -98,6 +98,7 @@ Expect ~**+0.22** again. Same for B and C.
 | `portfolio/proof_c_*` | Full API rate-limit proof |
 | `KERNEL_v1.py` | Frozen kernel |
 | `nodes/` | Ingest + actuate + HealthEngine wire-in |
+| `plugins/` | Drop-in adapters: fleet, queue, API, LangGraph, CrewAI |
 | `portfolio/ONE_PAGER.html` | Shareable one-pager |
 | `INTEGRATION.md` | Wire your metrics |
 | `LICENSE_PERSONAL.txt` | Personal-use license |
@@ -166,6 +167,12 @@ python nodes\\demo_nodes.py
 
 ## 5. Wire your system
 Read `INTEGRATION.md` — ingest → HealthEngine → actuate.
+
+## 6. Plugins (easiest)
+```bat
+python -m plugins.examples.minimal_all
+```
+See `plugins/README.md` — Fleet / Queue / API / LangGraph / CrewAI drop-ins.
 """
 
 LICENSE = """Infinity Engine Soft Pack — Personal License (v1)
@@ -332,6 +339,10 @@ def stage() -> Path:
     # Nodes (no pycache)
     copy_tree_filtered(ROOT / "nodes", STAGE / "nodes", skip_names=SKIP)
 
+    # Plugins — drop-in adapters (fleet / queue / api / langgraph / crewai)
+    if (ROOT / "plugins").is_dir():
+        copy_tree_filtered(ROOT / "plugins", STAGE / "plugins", skip_names=SKIP)
+
     # Portfolio proofs + one-pager
     port = STAGE / "portfolio"
     port.mkdir(parents=True, exist_ok=True)
@@ -353,9 +364,13 @@ def stage() -> Path:
     # Front door: pre-built proof HTML + charts (no "trust us")
     write_proof_front_door(STAGE)
 
-    # Docs from product/
-    copy_file(PRODUCT / "INTEGRATION.md", STAGE / "INTEGRATION.md")
-    copy_file(PRODUCT / "BUYER_LANGUAGE.md", STAGE / "BUYER_LANGUAGE.md")
+    # Docs (prefer product/, fall back to repo root)
+    for name in ("INTEGRATION.md", "BUYER_LANGUAGE.md"):
+        src = PRODUCT / name if (PRODUCT / name).exists() else ROOT / name
+        if src.exists():
+            copy_file(src, STAGE / name)
+        else:
+            print(f"  WARN: missing {name}")
 
     (STAGE / "README.md").write_text(README, encoding="utf-8")
     (STAGE / "QUICKSTART.md").write_text(QUICKSTART, encoding="utf-8")

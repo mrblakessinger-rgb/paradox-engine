@@ -76,11 +76,27 @@ pip install -r REQUIREMENTS.txt
 python KERNEL_v1.py --status
 python KERNEL_v1.py --demo 40
 python nodes\demo_nodes.py
+python -m plugins.examples.minimal_all
 ```
 
 Requires: **Python 3.10+**, `numpy`, `matplotlib`.
 
-Wire-in: [`INTEGRATION.md`](INTEGRATION.md) · Buyer language: [`BUYER_LANGUAGE.md`](BUYER_LANGUAGE.md)
+Wire-in: [`INTEGRATION.md`](INTEGRATION.md) · **Plugins:** [`plugins/README.md`](plugins/README.md) · Buyer language: [`BUYER_LANGUAGE.md`](BUYER_LANGUAGE.md)
+
+### Plug into your stack (30s)
+
+```python
+from plugins import Eye, HealthSnapshot
+from plugins.adapters.fleet import FleetPlugin      # Problem X
+from plugins.adapters.queue import QueuePlugin      # Problem Y
+from plugins.adapters.api_client import ApiClientPlugin  # Problem Z
+# LangGraph: plugins.adapters.langgraph.eye_gate_node
+# CrewAI:    plugins.adapters.crewai.EyeStormCrewGuard
+
+eye = Eye(seed=42, world="auto")
+ctrl = eye.step(HealthSnapshot(success_rate=0.55, env_load=1.9, thrash=0.7))
+# → ctrl.max_concurrency, retry_budget, storm_active, felt_load_scale
+```
 
 ---
 

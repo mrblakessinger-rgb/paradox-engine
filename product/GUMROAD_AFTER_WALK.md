@@ -75,6 +75,7 @@ shield · cool thrash · quarantine worst · revive when healthy
 
 - Frozen **kernel** — run it, don’t re-architect it  
 - **Ingest + actuate** wire-in (your numbers in, actions out)  
+- **Plugins** — drop-ins for fleets, worker queues, API clients, LangGraph, CrewAI (`plugins/README.md`)  
 - **Proof A / B / C** runners + HTML case studies + charts  
 - Buyer language card (performance first — no theory lecture)  
 - Re-run on your machine with one command per proof  

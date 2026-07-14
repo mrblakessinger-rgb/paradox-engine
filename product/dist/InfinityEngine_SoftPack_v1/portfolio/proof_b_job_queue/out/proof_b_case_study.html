@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"/><title>Proof B — Job Queue</title>
+<style>
+body{margin:0;padding:28px;background:#0b0f14;color:#e8eef7;font-family:Segoe UI,sans-serif;max-width:900px}
+.ok{color:#5dffb0} .card{background:#121a24;border:1px solid #243044;border-radius:12px;padding:16px;margin:12px 0}
+img{max-width:100%;border-radius:8px} table{width:100%;border-collapse:collapse}
+td,th{padding:8px;border-bottom:1px solid #243044;text-align:left}
+</style></head><body>
+<h1>Proof B — Job / worker queue</h1>
+<p><b>Problem:</b> Parallel workers process jobs. Failures retry and stampede the queue under storms/jumps.</p>
+<p><b>Approach:</b> KERNEL_v1 health layer — shield load when stable, quarantine worst workers, revive when healthy.</p>
+<div class="card">
+<table>
+<tr><th></th><th>Baseline</th><th>Engine</th><th>Δ</th></tr>
+<tr><td>Mean success</td><td>0.510</td><td class="ok">0.743</td>
+<td>+0.232</td></tr>
+<tr><td>Late success</td><td>0.576</td><td class="ok">0.735</td>
+<td>+0.159</td></tr>
+<tr><td>p10 floor</td><td>0.380</td><td class="ok">0.640</td>
+<td>+0.260</td></tr>
+<tr><td>Kernel late</td><td>—</td><td>0.950</td><td>target 0.92</td></tr>
+</table>
+<p>Verdict: <b class="ok">ENGINE HELPS</b></p>
+<img src="proof_b_comparison.png"/>
+</div>
+</body></html>
