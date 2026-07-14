@@ -1,37 +1,43 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"/>
-<title>Soft Pack — Open these proofs</title>
+<title>Eye of the Storm — Open these proofs</title>
 <style>
 body{margin:0;padding:32px 20px;background:#0b0f14;color:#e8eef7;font-family:Segoe UI,system-ui,sans-serif;max-width:820px;margin-inline:auto}
 h1{margin:0 0 8px} .sub{color:#8b9bb0;margin:0 0 22px}
+.hero{color:#5dffb0;font-weight:600;margin:0 0 6px}
 .grid{display:grid;gap:12px}
 a.card{display:block;background:#121a24;border:1px solid #243044;border-radius:12px;padding:16px;text-decoration:none;color:inherit}
 a.card:hover{border-color:#3a6}
 .ok{color:#5dffb0;font-weight:700;font-size:1.2rem}
+.prob{color:#ffb86b;font-size:.85rem;margin-top:4px}
 p{margin:6px 0 0;color:#8b9bb0;font-size:.9rem}
 img{max-width:100%;border-radius:8px;margin-top:10px;border:1px solid #243044}
 </style></head><body>
+<p class="hero">Chaos can hit it. Chaos can’t own it.</p>
 <h1>Proofs included — not just claimed</h1>
-<p class="sub">Pre-built results from this Soft Pack. Click any card. Re-run scripts live under <code>portfolio/</code>.</p>
+<p class="sub">Three problems. Three worlds. Same pattern. Click a card · re-run scripts under <code>portfolio/</code>.</p>
 <div class="grid">
 <a class="card" href="A_agent_fleet.html">
-  <div class="ok">+0.22 success</div>
+  <div class="ok">+0.221 success · 9→20 active</div>
   <strong>Proof A — Agent fleet</strong>
-  <p>Open full case study HTML</p>
+  <div class="prob">Problem X: fleets die when tools flake</div>
+  <p>0.474 → 0.695 under tool storms · kernel late ~0.95</p>
   <img src="A_agent_fleet_chart.png" alt="Proof A — Agent fleet chart"/>
 </a>
 <a class="card" href="B_job_queue.html">
-  <div class="ok">+0.23 success</div>
+  <div class="ok">+0.232 success</div>
   <strong>Proof B — Job queue</strong>
-  <p>Open full case study HTML</p>
+  <div class="prob">Problem Y: queues stampede on retries</div>
+  <p>0.510 → 0.743 under worker storms · kernel late ~0.95</p>
   <img src="B_job_queue_chart.png" alt="Proof B — Job queue chart"/>
 </a>
 <a class="card" href="C_rate_limit.html">
-  <div class="ok">+0.24 goodput</div>
+  <div class="ok">+0.239 goodput · alive 0→~8</div>
   <strong>Proof C — API rate-limit</strong>
-  <p>Open full case study HTML</p>
+  <div class="prob">Problem Z: clients melt under 429 thrash</div>
+  <p>0.018 → 0.257 goodput · kernel late ~0.95</p>
   <img src="C_rate_limit_chart.png" alt="Proof C — API rate-limit chart"/>
 </a>
 </div>
-<p class="sub" style="margin-top:24px">Re-run: <code>portfolio/proof_a_agent_fleet/run_proof_a.py</code> (and B/C). Kernel at pack root.</p>
+<p class="sub" style="margin-top:24px">Product: <b>Eye of the Storm</b> · Re-run: <code>portfolio/proof_*/run_proof_*.py</code> · Kernel at repo root.</p>
 </body></html>

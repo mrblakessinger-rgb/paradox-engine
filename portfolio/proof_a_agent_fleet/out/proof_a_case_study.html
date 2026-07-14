@@ -10,20 +10,20 @@ table{border-collapse:collapse;width:100%} td,th{padding:8px;border-bottom:1px s
 <h1>Proof A — Multi-agent tool fleet</h1>
 <p><b>Problem:</b> 20 agents call flaky tools. Storms and jumps raise failure rate.
 Cascades kill agents. Without a health layer, the fleet thrashes.</p>
-<p><b>Approach:</b> Infinity Engine KERNEL_v1 as health controller.
+<p><b>Approach:</b> Paradox Engine KERNEL_v1 as health controller.
 Ingest (failures→I) → kernel hive step → actuate (quarantine worst / revive).</p>
 
 <div class="card">
 <h2>Results</h2>
 <table>
 <tr><th></th><th>Baseline</th><th>With Engine</th><th>Δ</th></tr>
-<tr><td>Mean success</td><td>0.474</td><td class="ok">0.694</td>
-<td>+0.220</td></tr>
+<tr><td>Mean success</td><td>0.474</td><td class="ok">0.695</td>
+<td>+0.221</td></tr>
 <tr><td>Late success</td><td>0.485</td><td class="ok">0.686</td>
 <td>+0.201</td></tr>
 <tr><td>p10 (floor)</td><td>0.172</td><td class="ok">0.525</td>
 <td>+0.353</td></tr>
-<tr><td>Kernel late stab</td><td>—</td><td>0.950</td><td>target 0.92</td></tr>
+<tr><td>Kernel late stab</td><td>—</td><td>0.951</td><td>target 0.92</td></tr>
 </table>
 <p>Verdict: <b class="ok">ENGINE HELPS</b></p>
 <img src="proof_a_comparison.png" alt="comparison"/>

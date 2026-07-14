@@ -1,34 +1,37 @@
-# Paradox Engine
+# Paradox Engine — Eye of the Storm
 
-**Self-stabilizing health layer for multi-agent and multi-worker systems under load storms.**
+**Chaos can hit it. Chaos can’t own it.**  
+**Not unbreakable — but your system won’t break it.**
 
-Performance first. Internals sealed.  
-Not a chatbot. Not a full agent framework.  
-A **health controller** that holds a target band under thrash — storms, retries, rate-limit stampedes — without locking at perfect 1.0.
+Self-stabilizing **health layer** for multi-agent fleets, worker queues, and API clients under load storms.
 
-**Soft Pack (paid, optional):** [Gumroad — $149](https://blakesinger.gumroad.com/l/wcorn)  
-Same core demos + packaging; Gumroad is the supported product surface.
+Not a chatbot. Not another agent framework.  
+A **fleet health controller** — holds a target band under thrash without locking at fake “perfect 1.0” and going blind.
 
----
-
-## One-sentence pitch
-
-> Paradox Engine keeps multi-agent / multi-process systems near a target health band under random load spikes — without constant human babysitting.
+**Product (zip + support):** [Eye of the Storm — $149 on Gumroad](https://blakesinger.gumroad.com/l/wcorn)
 
 ---
 
-## Measured demos (re-run on your machine)
+## Problems it actually measures against
 
-| Proof | World | Lift |
-|-------|--------|------|
-| **A** | Agent fleet / flaky tools | **+0.22** success |
-| **B** | Job / worker queue storms | **+0.23** success |
-| **C** | API rate-limit thrash | **+0.24** goodput |
+| | Pain | Proof | Result |
+|---|------|-------|--------|
+| **X** | Agent fleets die when tools flake | **A** — fleet / tool storms | **0.474 → 0.695** success (**+0.221**) · final active **9 → 20** |
+| **Y** | Worker queues stampede on retries | **B** — job queue storms | **0.510 → 0.743** success (**+0.232**) |
+| **Z** | API clients melt under 429 thrash | **C** — rate-limit thrash | **0.018 → 0.257** goodput (**+0.239**) · late alive **0 → ~8** |
 
-Open proofs **without running Python first:**
+Kernel late stability under those runs: **~0.94–0.95** (target band ~0.92 — holds without freezing at 1.0).
 
-1. Open `START_HERE.html`  
-2. Or browse `OPEN_THESE_PROOFS/`
+Same pattern across **three** different worlds. Seeded. **You re-run it.**
+
+Public shorthand: **+0.22 / +0.23 / +0.24**.
+
+---
+
+## See proofs in 10 seconds
+
+1. Open [`START_HERE.html`](START_HERE.html)  
+2. Or browse [`OPEN_THESE_PROOFS/`](OPEN_THESE_PROOFS/)
 
 Re-run:
 
@@ -43,23 +46,26 @@ Same pattern for `proof_b_job_queue` and `proof_c_rate_limit`.
 
 ---
 
+## One-sentence pitch
+
+> Eye of the Storm keeps multi-agent and multi-worker systems near a target health band under random load spikes — without constant babysitting.
+
+---
+
 ## Architecture (surface only)
 
 ```
-your metrics  →  ingest  →  KERNEL (Paradox + hive)  →  actuate  →  your system
+your metrics  →  ingest  →  KERNEL  →  actuate  →  your system
 ```
 
 | Piece | Role |
 |-------|------|
-| **Ingest** | Failures / load → interference I |
-| **Kernel** | Swarm health step + hive churn + promoted DNA |
-| **Actuate** | Shield load, cool thrash, quarantine worst, revive when healthy |
-| **Contract** | Target ~0.92 · soft ceiling 0.97 (anti-lock) |
+| **Ingest** | Failures / load → interference |
+| **Kernel** | Swarm health step (frozen contract) |
+| **Actuate** | Shield, cool thrash, quarantine worst, revive when healthy |
+| **Contract** | Target ~0.92 · soft ceiling ~0.97 (anti-lock) |
 
-**Paradox** is aware and one-way: installs instincts into the swarm; the swarm does not store Paradox.  
-Raw episode scars are compressed into **wisdom** (not trauma) before DNA updates.
-
-Deep theory stays out of this README on purpose.
+Internals stay sealed. Buyers buy **performance**, not a theory seminar.
 
 ---
 
@@ -74,40 +80,7 @@ python nodes\demo_nodes.py
 
 Requires: **Python 3.10+**, `numpy`, `matplotlib`.
 
----
-
-## Experiments — storm shell (R&D)
-
-Prototype **storm surge shell** + beacons + toughen ramps under extreme interference (I up to 6.4+).  
-Not promoted Soft Pack DNA. Optional future actuate skin.
-
-```bat
-cd experiments\storm_shell
-python hell_beacons_surge_demo.py
-python storm_surge_learn_cycles.py
-python toughen_then_hell_eval.py
-python storm_mode_429_demo.py
-```
-
-See `experiments/storm_shell/README.md` and last-run plots under `experiments/storm_shell/out/`.
-
----
-
-## Wire-in (nodes)
-
-```python
-from nodes.ingest import to_interference
-from nodes.engine_loop import HealthEngine
-from nodes.actuate import plan_actions, apply_shield
-
-eng = HealthEngine(seed=42)
-I = to_interference(success_rate=0.55, env_load=1.8)
-out = eng.step(I, success_rate=0.55)
-plan = out["plan"]   # shield_scale, quarantine_k, revive_k, cool_retries, ...
-felt = apply_shield(1.8, plan)
-```
-
-See `INTEGRATION.md`.
+Wire-in: [`INTEGRATION.md`](INTEGRATION.md) · Buyer language: [`BUYER_LANGUAGE.md`](BUYER_LANGUAGE.md)
 
 ---
 
@@ -117,52 +90,23 @@ See `INTEGRATION.md`.
 |------|-----|
 | Who does what (graphs, roles, tools) | LangGraph / CrewAI / etc. |
 | Durable jobs that survive crashes | Temporal / SQS / Redis leases |
-| Fleet health under storms / thrash | **Paradox Engine** |
+| Fleet health under storms / thrash | **Paradox Engine — Eye of the Storm** |
 
-They **stack**. This is the health layer, not a replacement for orchestration or durable queues.
-
----
-
-## What’s in this repo
-
-- `KERNEL_v1.py` — single-file kernel (promoted multi-seed DNA + reflected wisdom)
-- `nodes/` — ingest, actuate, HealthEngine
-- `portfolio/proof_*` — baseline vs engine demos
-- `OPEN_THESE_PROOFS/` — pre-built HTML + charts
-- `BUYER_LANGUAGE.md` — how to talk about it without leaking internals
+Use them to run work. Use **Eye of the Storm** when fleets thrash under load.
 
 ---
 
-## What’s not in this repo (on purpose)
+## Product vs this repo
 
-- Training / DNA breeding lab  
-- Private ops logs  
-- Architecture lectures as the product  
-
-Custom vertical glue → pilot / consulting, not the free core.
-
----
-
-## Roadmap (public)
-
-- [x] Kernel + proofs + Soft Pack  
-- [x] Paradox scar → wisdom path (exam-gated)  
-- [ ] Surge / flood **defense** node (absorb thrash, temporary overflow, contract when calm)  
-- [ ] Expand-band experiments under extreme I (lab)  
-- [ ] Real lease-queue demo beside health layer  
+| | GitHub (this) | Gumroad pack |
+|--|---------------|--------------|
+| Proofs A/B/C | Yes | Yes |
+| Kernel + ingest/actuate | Yes | Yes + buyer packaging |
+| Support | Issues / community | Personal license support |
+| Trading / lab mesh | **Not the product** | Not in the zip |
 
 ---
 
 ## License
 
-See `LICENSE` — personal / demo use friendly.  
-Commercial redistribution of the pack as your product: ask first.
-
----
-
-## Contact / product
-
-- **Gumroad Soft Pack:** https://blakesinger.gumroad.com/l/wcorn  
-- Issues / discussion: use this GitHub repo  
-
-Built in public. Feedback welcome — especially multi-agent thrash war stories.
+See `LICENSE`. Product sales and personal license terms are on Gumroad.
