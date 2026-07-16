@@ -6,7 +6,10 @@
 Rebuild if needed: `python product/build_soft_pack.py --zip`
 
 **Tone:** performance · light swagger · no fluff · no invincibility · no 14-D lab lore  
-**Exposure order:** free samples + contracts → GitHub proofs → thrash-thread help → honest fleet-health bounties only
+**Exposure order:** free samples + contracts → GitHub proofs → thrash-thread help → honest fleet-health bounties only  
+
+**Storefront rule (2026-07-16):** ship **thrash Soft Pack only**. Logic-loop / residual = research, not this zip.  
+**Paste-ready thrash package:** `GUMROAD_STOREFRONT_BLURB.md` · `THRASH_DOOR_PASTE.md` · `THRASH_NOTE_TEMPLATE.md`
 
 ---
 
@@ -16,10 +19,12 @@ Rebuild if needed: `python product/build_soft_pack.py --zip`
 Paradox Engine — Eye of the Storm
 ```
 
+(Buy button can say **Eye of the Storm** alone.)
+
 ## Subtitle
 
 ```
-Chaos can hit it. Chaos can't own it. Nothing is unbreakable... But your system can't break this. Measured fleet health when agents, queues, and APIs thrash.
+When agents, workers, or APIs thrash under load — keep real work alive. Measured +0.22 / +0.23 / +0.24. Not another framework. Not Cloudflare.
 ```
 
 ## Full description (paste)

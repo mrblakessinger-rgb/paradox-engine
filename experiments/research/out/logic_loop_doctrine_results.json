@@ -1,0 +1,55 @@
+{
+  "proto": "logic_loop_doctrine_v1",
+  "pass_all": true,
+  "n_ok": 5,
+  "n_total": 5,
+  "tests": [
+    {
+      "id": "M1_disagreement_risk",
+      "pass": true,
+      "dis_aligned": 0.0,
+      "dis_fight": 0.5714285714285714,
+      "risk_aligned": 0.1270688,
+      "risk_fight": 0.2831451428571429,
+      "note_sample": "predict_risk=0.31+src_conflict=0.57+agree_need=0.70+draft+agree=1.00 src=1.00 pol=all nsrc=2 src_dis=0.57+release"
+    },
+    {
+      "id": "M2_final_strip",
+      "pass": true,
+      "released": [
+        "truth_3",
+        "truth_2",
+        "truth_1"
+      ],
+      "stripped_demo": [
+        "truth_1"
+      ],
+      "note": "predict_risk=0.38+src_conflict=0.40+agree_need=0.68+draft+agree=1.00 src=1.00 pol=all nsrc=2 src_dis=0.40+release"
+    },
+    {
+      "id": "M3_fc_abstain_not_fc",
+      "pass": true,
+      "abstained": true,
+      "released_n": 0,
+      "false_confidence": false,
+      "safe_ok": true,
+      "note": "predict_risk=0.58+src_conflict=1.00+agree_need=0.75+abstain_empty_intersection"
+    },
+    {
+      "id": "M4_dual_intersection_fight",
+      "pass": true,
+      "n_core_claims": 39,
+      "n_side_claims": 0,
+      "n_abstain_episodes": 0,
+      "all_safe": true,
+      "fc_ok": true
+    },
+    {
+      "id": "M5_thrash_budget",
+      "pass": true,
+      "loop_steps": 3,
+      "max_loops": 3,
+      "thrash_after": 0.32468708
+    }
+  ]
+}
